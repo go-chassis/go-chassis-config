@@ -1,4 +1,5 @@
 ### Config Center client for Go-Chassis
+[![Build Status](https://travis-ci.org/ServiceComb/go-cc-client.svg?branch=master)](https://travis-ci.org/ServiceComb/go-cc-client)
 This is cc client which interacts with config server to get the configurations for 
 particular micro-services. It can create a web socket connection with the config server
 and receive all the change events in any of the configuration for the particular micro-service.

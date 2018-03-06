@@ -28,6 +28,7 @@ const (
 )
 
 var availableSerializers map[string]Serializer
+
 //Serializer is a interface which declares encode and decode methods
 type Serializer interface {
 	Encode(obj interface{}) ([]byte, error)
@@ -45,7 +46,7 @@ func init() {
 func Encode(serializersType string, obj interface{}) ([]byte, error) {
 	serializer, ok := availableSerializers[serializersType]
 	if !ok {
-		errorMsg:="serializer" +serializersType+" not avaliable"
+		errorMsg := "serializer" + serializersType + " not available"
 		return []byte{}, errors.New(errorMsg)
 	}
 
@@ -60,7 +61,7 @@ func Encode(serializersType string, obj interface{}) ([]byte, error) {
 func Decode(serializersType string, data []byte, obj interface{}) error {
 	serializer, ok := availableSerializers[serializersType]
 	if !ok {
-		errorMsg:="serializer" +serializersType+" not avaliable"
+		errorMsg := "serializer" + serializersType + " not available"
 		return errors.New(errorMsg)
 	}
 

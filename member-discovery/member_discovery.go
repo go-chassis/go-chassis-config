@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 // Package memberdiscovery created on 2017/6/20.
 package memberdiscovery
 
@@ -38,25 +37,28 @@ import (
 )
 
 var (
-	memDiscovery      *MemDiscovery
+	memDiscovery *MemDiscovery
 	//HeaderTenantName is a variable of type string
-	HeaderTenantName  = "X-Tenant-Name"
+	HeaderTenantName = "X-Tenant-Name"
 	//ConfigMembersPath is a variable of type string
 	ConfigMembersPath = ""
 )
 
 const (
 	//StatusUP is a variable of type string
-	StatusUP            = "UP"
+	StatusUP = "UP"
 	//HeaderContentType is a variable of type string
-	HeaderContentType  = "Content-Type"
+	HeaderContentType = "Content-Type"
 	//HeaderUserAgent is a variable of type string
 	HeaderUserAgent    = "User-Agent"
-	members             = "/configuration/members"
-	defaultContentType  = "application/json"
+	members            = "/configuration/members"
+	defaultContentType = "application/json"
+	tenantName         = "X-Tenant-Name"
 )
-//MemberDiscoveryService
+
+//MemberDiscoveryService is a variable
 var MemberDiscoveryService MemberDiscovery
+
 //MemberDiscovery is a interface
 type MemberDiscovery interface {
 	ConfigurationInit([]string) error
@@ -65,6 +67,7 @@ type MemberDiscovery interface {
 	Shuffle() error
 	GetWorkingConfigCenterIP([]string) ([]string, error)
 }
+
 //MemDiscovery is a struct
 type MemDiscovery struct {
 	ConfigServerAddresses []string
@@ -76,6 +79,7 @@ type MemDiscovery struct {
 	sync.RWMutex
 	client *httpclient.URLClient
 }
+
 //Instance is a struct
 type Instance struct {
 	Status      string   `json:"status"`
@@ -83,10 +87,12 @@ type Instance struct {
 	IsHTTPS     bool     `json:"isHttps"`
 	EntryPoints []string `json:"endpoints"`
 }
+
 //Members is a struct
 type Members struct {
 	Instances []Instance `json:"instances"`
 }
+
 //NewConfiCenterInit is a function
 func NewConfiCenterInit(tlsConfig *tls.Config, tenantName string, enableSSL bool) MemberDiscovery {
 	if memDiscovery == nil {
@@ -147,15 +153,16 @@ func updateAPIPath(apiVersion string) {
 	switch apiVersion {
 	case "v3":
 		ConfigMembersPath = "/v3/" + projectID + members
-		HeaderTenantName = "X-Tenant-Name"
+		HeaderTenantName = tenantName
 	case "v2":
 		ConfigMembersPath = "/members"
-		HeaderTenantName = "X-Tenant-Name"
+		HeaderTenantName = tenantName
 	default:
 		ConfigMembersPath = "/v3/" + projectID + members
-		HeaderTenantName = "X-Tenant-Name"
+		HeaderTenantName = tenantName
 	}
 }
+
 //ConfigurationInit is a method for creating a configuration
 func (memDis *MemDiscovery) ConfigurationInit(initConfigServer []string) error {
 	if memDis.IsInit == true {
@@ -180,6 +187,7 @@ func (memDis *MemDiscovery) ConfigurationInit(initConfigServer []string) error {
 	memDis.IsInit = true
 	return nil
 }
+
 //GetConfigServer is a method used for getting server configuration
 func (memDis *MemDiscovery) GetConfigServer() ([]string, error) {
 	if memDis.IsInit == false {
@@ -223,6 +231,7 @@ func (memDis *MemDiscovery) GetConfigServer() ([]string, error) {
 	lager.Logger.Debugf("member server return %s", memDis.ConfigServerAddresses[0])
 	return memDis.ConfigServerAddresses, nil
 }
+
 //RefreshMembers is a method
 func (memDis *MemDiscovery) RefreshMembers() error {
 	var (
@@ -298,6 +307,7 @@ func (memDis *MemDiscovery) RefreshMembers() error {
 	memDis.Unlock()
 	return nil
 }
+
 //GetDefaultHeaders gets default headers
 func GetDefaultHeaders(tenantName string) http.Header {
 	headers := http.Header{
@@ -308,6 +318,7 @@ func GetDefaultHeaders(tenantName string) http.Header {
 
 	return headers
 }
+
 //Shuffle is a method to log error
 func (memDis *MemDiscovery) Shuffle() error {
 	if memDis.ConfigServerAddresses == nil || len(memDis.ConfigServerAddresses) == 0 {
@@ -331,6 +342,7 @@ func (memDis *MemDiscovery) Shuffle() error {
 	lager.Logger.Debugf("Suffled member %s", memDis.ConfigServerAddresses)
 	return nil
 }
+
 //GetWorkingConfigCenterIP is a method which gets working configuration center IP
 func (memDis *MemDiscovery) GetWorkingConfigCenterIP(entryPoint []string) ([]string, error) {
 	instances := new(Members)
