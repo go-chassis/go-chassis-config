@@ -1,13 +1,14 @@
 package memberdiscovery
 
 import (
+	"math/rand"
+	"os"
+	"strconv"
+	"testing"
+
 	"github.com/ServiceComb/go-chassis/core/config"
 	"github.com/ServiceComb/go-chassis/core/config/model"
 	"github.com/stretchr/testify/assert"
-
-	//	"net/http"
-	"os"
-	"testing"
 )
 
 type TestingSource struct {
@@ -161,4 +162,18 @@ func TestGetWorkingConfigCenterIP(t *testing.T) {
 	_, er := memDiscovery.GetWorkingConfigCenterIP(endpoint)
 
 	assert.NoError(t, er)
+}
+
+func TestGetDefaultHeaders(t *testing.T) {
+	t.Log("Headers should contain environment")
+	if config.MicroserviceDefinition == nil {
+		config.MicroserviceDefinition = &model.MicroserviceCfg{}
+	}
+	h := GetDefaultHeaders("")
+	assert.Equal(t, "", h.Get(HeaderEnvironment))
+
+	e := strconv.Itoa(rand.Int())
+	config.MicroserviceDefinition.ServiceDescription.Environment = e
+	h = GetDefaultHeaders("")
+	assert.Equal(t, e, h.Get(HeaderEnvironment))
 }
