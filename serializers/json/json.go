@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+//Created by on 2017/6/22.
 
-/*
-* Created by on 2017/6/22.
- */
+//Package json is used for marshalling and unmarshalling
 package json
 
 import (
@@ -24,9 +23,10 @@ import (
 	"errors"
 )
 
+//JsonSerializer is a empty struct
 type JsonSerializer struct{}
 
-//Unmarshal unmarshaling data
+//Decode - Unmarshal unmarshaling data
 func (js JsonSerializer) Decode(data []byte, v interface{}) error {
 	var err error
 	defer func() {
@@ -40,7 +40,7 @@ func (js JsonSerializer) Decode(data []byte, v interface{}) error {
 	return err
 }
 
-//Marshal marshaling data
+//Encode - Marshal marshaling data
 func (js JsonSerializer) Encode(v interface{}) ([]byte, error) {
 	var (
 		data []byte

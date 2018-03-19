@@ -57,7 +57,7 @@ const (
 	defaultContentType = "application/json"
 )
 
-//MemberDiscoveryService
+//MemberDiscoveryService is a variable
 var MemberDiscoveryService MemberDiscovery
 
 //MemberDiscovery is a interface
@@ -154,13 +154,13 @@ func updateAPIPath(apiVersion string) {
 	switch apiVersion {
 	case "v3":
 		ConfigMembersPath = "/v3/" + projectID + members
-		HeaderTenantName = "X-Tenant-Name"
+		HeaderTenantName = tenantName
 	case "v2":
 		ConfigMembersPath = "/members"
-		HeaderTenantName = "X-Tenant-Name"
+		HeaderTenantName = tenantName
 	default:
 		ConfigMembersPath = "/v3/" + projectID + members
-		HeaderTenantName = "X-Tenant-Name"
+		HeaderTenantName = tenantName
 	}
 }
 
