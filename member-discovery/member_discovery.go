@@ -273,7 +273,8 @@ func (memDis *MemDiscovery) RefreshMembers() error {
 		}
 		error := serializers.Decode(defaultContentType, body, &instances)
 		if error != nil {
-			lager.Logger.Error("config source member request failed with error", errors.New("error in decoding the request"))
+			lager.Logger.Error("config source member request failed with error", errors.New("error in decoding the request:"+error.Error()))
+			lager.Logger.Debugf("config source member request failed with error", error, "with body", body)
 			continue
 		}
 		for _, instance := range instances.Instances {
@@ -366,9 +367,11 @@ func (memDis *MemDiscovery) GetWorkingConfigCenterIP(entryPoint []string) ([]str
 		}
 		error := serializers.Decode(defaultContentType, body, &instances)
 		if error != nil {
-			lager.Logger.Error("config source member request failed with error", errors.New("error in decoding the request"))
+			lager.Logger.Error("config source member request failed with error", errors.New("error in decoding the request:"+error.Error()))
+			lager.Logger.Debugf("config source member request failed with error", error, "with body", body)
 			continue
 		}
+
 		ConfigServerAddresses = append(ConfigServerAddresses, server)
 	}
 	return ConfigServerAddresses, nil
