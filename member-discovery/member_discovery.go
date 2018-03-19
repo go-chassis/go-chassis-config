@@ -20,20 +20,20 @@ package memberdiscovery
 import (
 	"crypto/tls"
 	"errors"
+	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 
 	"github.com/ServiceComb/go-cc-client"
+	"github.com/ServiceComb/go-cc-client/serializers"
+
 	"github.com/ServiceComb/go-chassis/core/common"
 	"github.com/ServiceComb/go-chassis/core/config"
 	"github.com/ServiceComb/go-chassis/core/lager"
 	"github.com/ServiceComb/http-client"
-	"os"
-
-	"github.com/ServiceComb/go-cc-client/serializers"
-	"io/ioutil"
 )
 
 var (
@@ -50,10 +50,11 @@ const (
 	//HeaderContentType is a variable of type string
 	HeaderContentType = "Content-Type"
 	//HeaderUserAgent is a variable of type string
-	HeaderUserAgent    = "User-Agent"
+	HeaderUserAgent = "User-Agent"
+	//HeaderEnvironment specifies the environment of a service
+	HeaderEnvironment  = "X-Environment"
 	members            = "/configuration/members"
 	defaultContentType = "application/json"
-	tenantName         = "X-Tenant-Name"
 )
 
 //MemberDiscoveryService is a variable
@@ -272,7 +273,8 @@ func (memDis *MemDiscovery) RefreshMembers() error {
 		}
 		error := serializers.Decode(defaultContentType, body, &instances)
 		if error != nil {
-			lager.Logger.Error("config source member request failed with error", errors.New("error in decoding the request"))
+			lager.Logger.Error("config source member request failed with error", errors.New("error in decoding the request:"+error.Error()))
+			lager.Logger.Debugf("config source member request failed with error", error, "with body", body)
 			continue
 		}
 		for _, instance := range instances.Instances {
@@ -314,6 +316,9 @@ func GetDefaultHeaders(tenantName string) http.Header {
 		HeaderContentType: []string{"application/json"},
 		HeaderUserAgent:   []string{"cse-configcenter-client/1.0.0"},
 		HeaderTenantName:  []string{tenantName},
+	}
+	if config.MicroserviceDefinition.ServiceDescription.Environment != "" {
+		headers.Set(HeaderEnvironment, config.MicroserviceDefinition.ServiceDescription.Environment)
 	}
 
 	return headers
@@ -362,9 +367,11 @@ func (memDis *MemDiscovery) GetWorkingConfigCenterIP(entryPoint []string) ([]str
 		}
 		error := serializers.Decode(defaultContentType, body, &instances)
 		if error != nil {
-			lager.Logger.Error("config source member request failed with error", errors.New("error in decoding the request"))
+			lager.Logger.Error("config source member request failed with error", errors.New("error in decoding the request:"+error.Error()))
+			lager.Logger.Debugf("config source member request failed with error", error, "with body", body)
 			continue
 		}
+
 		ConfigServerAddresses = append(ConfigServerAddresses, server)
 	}
 	return ConfigServerAddresses, nil

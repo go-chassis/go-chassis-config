@@ -46,7 +46,7 @@ func init() {
 func Encode(serializersType string, obj interface{}) ([]byte, error) {
 	serializer, ok := availableSerializers[serializersType]
 	if !ok {
-		errorMsg := "serializer" + serializersType + " not available"
+		errorMsg := "serializer" + serializersType + " not avaliable"
 		return []byte{}, errors.New(errorMsg)
 	}
 
@@ -61,7 +61,7 @@ func Encode(serializersType string, obj interface{}) ([]byte, error) {
 func Decode(serializersType string, data []byte, obj interface{}) error {
 	serializer, ok := availableSerializers[serializersType]
 	if !ok {
-		errorMsg := "serializer" + serializersType + " not available"
+		errorMsg := "serializer" + serializersType + " not avaliable"
 		return errors.New(errorMsg)
 	}
 
