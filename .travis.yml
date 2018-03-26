@@ -33,8 +33,3 @@ jobs:
       script:
         - go get github.com/fzipp/gocyclo
         - bash -x scripts/travis/goCycloChecker.sh
-    - stage: Unit Test
-      script:
-        - go get -u github.com/FiloSottile/gvt
-        - bash -x scripts/travis/start_latest_sc.sh 
-        - bash -x scripts/travis/unit_test.sh 

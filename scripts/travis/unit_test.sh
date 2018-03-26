@@ -7,6 +7,7 @@ mkdir -p $GOPATH/src/github.com/fsnotify
 mkdir -p $GOPATH/src/github.com/spf13
 mkdir -p $GOPATH/src/github.com/stretchr
 mkdir -p $GOPATH/src/golang.org/x
+mkdir -p $GOPATH/src/github.com/cenkalti
 
 go get gopkg.in/yaml.v2
 
@@ -35,6 +36,12 @@ git reset --hard 87b1dfb5b2fa649f52695dd9eae19abe404a4308
 
 cd $GOPATH/src/golang.org/x
 git clone https://github.com/golang/sys.git
+git clone https://github.com/golang/net.git
+
+cd $GOPATH/src/github.com/cenkalti
+git clone https://github.com/cenkalti/backoff.git
+cd backoff
+git reset --hard 3db60c813733fce657c114634171689bbf1f8dee
 
 cd $GOPATH/src/github.com/ServiceComb/go-cc-client
 #Start unit test
