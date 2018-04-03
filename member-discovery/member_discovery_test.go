@@ -178,4 +178,3 @@ func TestGetDefaultHeaders(t *testing.T) {
 	h = GetDefaultHeaders("")
 	assert.Equal(t, e, h.Get(HeaderEnvironment))
 }
-

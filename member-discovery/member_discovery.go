@@ -154,13 +154,10 @@ func updateAPIPath(apiVersion string) {
 	switch apiVersion {
 	case "v3":
 		ConfigMembersPath = "/v3/" + projectID + members
-		HeaderTenantName = tenantName
 	case "v2":
 		ConfigMembersPath = "/members"
-		HeaderTenantName = tenantName
 	default:
 		ConfigMembersPath = "/v3/" + projectID + members
-		HeaderTenantName = tenantName
 	}
 }
 
