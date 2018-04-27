@@ -42,6 +42,10 @@ var (
 	HeaderTenantName = "X-Tenant-Name"
 	//ConfigMembersPath is a variable of type string
 	ConfigMembersPath = ""
+	//ConfigPath is a variable of type string
+	ConfigPath = ""
+	//ConfigRefreshPath is a variable of type string
+	ConfigRefreshPath = ""
 )
 
 const (
@@ -54,6 +58,9 @@ const (
 	//HeaderEnvironment specifies the environment of a service
 	HeaderEnvironment  = "X-Environment"
 	members            = "/configuration/members"
+	dimensionsInfo     = "dimensionsInfo"
+	dynamicConfigAPI   = `/configuration/refresh/items`
+	getConfigAPI       = `/configuration/items`
 	defaultContentType = "application/json"
 )
 
@@ -131,7 +138,7 @@ func NewConfiCenterInit(tlsConfig *tls.Config, tenantName string, enableSSL bool
 	return memDiscovery
 }
 
-//HttpDo Use http-client package for rest communication
+//HTTPDo Use http-client package for rest communication
 func (memDis *MemDiscovery) HTTPDo(method string, rawURL string, headers http.Header, body []byte) (resp *http.Response, err error) {
 	if len(headers) == 0 {
 		headers = make(http.Header)
@@ -154,10 +161,16 @@ func updateAPIPath(apiVersion string) {
 	switch apiVersion {
 	case "v3":
 		ConfigMembersPath = "/v3/" + projectID + members
+		ConfigPath = "/v3/" + projectID + getConfigAPI
+		ConfigRefreshPath = "/v3/" + projectID + dynamicConfigAPI
 	case "v2":
 		ConfigMembersPath = "/members"
+		ConfigPath = "/configuration/v2/items"
+		ConfigRefreshPath = "/configuration/v2/refresh/items"
 	default:
 		ConfigMembersPath = "/v3/" + projectID + members
+		ConfigPath = "/v3/" + projectID + getConfigAPI
+		ConfigRefreshPath = "/v3/" + projectID + dynamicConfigAPI
 	}
 }
 
@@ -372,4 +385,85 @@ func (memDis *MemDiscovery) GetWorkingConfigCenterIP(entryPoint []string) ([]str
 		ConfigServerAddresses = append(ConfigServerAddresses, server)
 	}
 	return ConfigServerAddresses, nil
+}
+
+// PullConfigs is the implementation of ConfigClient to pull all the configurations from Config-Server
+func (memDis *MemDiscovery) PullConfigs(serviceName, version, app, env string) (map[string]interface{}, error) {
+
+	// serviceName is the dimensionInfo passed from ConfigClient (small hack)
+	configurations, error := memDis.pullConfigurationsFromServer(serviceName)
+	if error != nil {
+		return nil, error
+	}
+	return configurations, nil
+}
+
+// PullConfig is the implementation of ConfigClient to pull specific configurations from Config-Server
+func (memDis *MemDiscovery) PullConfig(serviceName, version, app, env, key, contentType string) (interface{}, error) {
+
+	// serviceName is the dimensionInfo passed from ConfigClient (small hack)
+	// TODO use the contentType to return the configurations
+	configurations, error := memDis.pullConfigurationsFromServer(serviceName)
+	if error != nil {
+		return nil, error
+	}
+	configurationsValue, ok := configurations[key]
+	if !ok {
+		lager.Logger.Error("Error in fetching the configurations for particular value", errors.New("No Key found : "+key))
+	}
+
+	return configurationsValue, nil
+}
+
+// pullConfigurationsFromServer pulls all the configuration from Config-Server based on dimesionInfo
+func (memDis *MemDiscovery) pullConfigurationsFromServer(dimensionInfo string) (map[string]interface{}, error) {
+
+	var count int
+	type GetConfigAPI map[string]map[string]interface{}
+	config := make(map[string]interface{})
+
+	configServerHost, err := memDis.GetConfigServer()
+	if err != nil {
+		err := memDis.RefreshMembers()
+		if err != nil {
+			lager.Logger.Error("error in refreshing config client members", err)
+			return nil, errors.New("error in refreshing config client members")
+		}
+		memDis.Shuffle()
+		configServerHost, _ = memDis.GetConfigServer()
+	}
+
+	confgCenterIP := len(configServerHost)
+	for _, server := range configServerHost {
+		configAPIRes := make(GetConfigAPI)
+		parsedDimensionInfo := strings.Replace(dimensionInfo, "#", "%23", -1)
+		resp, err := memDis.HTTPDo("GET", server+ConfigPath+"?"+dimensionsInfo+"="+parsedDimensionInfo, nil, nil)
+		if err != nil {
+			count++
+			if confgCenterIP <= count {
+				return nil, err
+			}
+			lager.Logger.Error("config source item request failed with error", err)
+			continue
+		}
+		var body []byte
+		body, err = ioutil.ReadAll(resp.Body)
+		contentType := resp.Header.Get("Content-Type")
+		if len(contentType) > 0 && (len(defaultContentType) > 0 && !strings.Contains(contentType, defaultContentType)) {
+			lager.Logger.Error("config source item request failed with error", errors.New("content type mis match"))
+			continue
+		}
+		error := serializers.Decode(defaultContentType, body, &configAPIRes)
+		if error != nil {
+			lager.Logger.Error("config source item request failed with error", errors.New("error in decoding the request:"+error.Error()))
+			lager.Logger.Debugf("config source item request failed with error", error, "with body", body)
+			continue
+		}
+		for _, v := range configAPIRes {
+			for key, value := range v {
+				config[key] = value
+			}
+		}
+	}
+	return config, nil
 }
