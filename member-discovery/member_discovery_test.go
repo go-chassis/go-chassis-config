@@ -7,9 +7,12 @@ import (
 	"testing"
 
 	"encoding/json"
+	"github.com/ServiceComb/go-archaius"
+	"github.com/ServiceComb/go-archaius/core"
 	"github.com/ServiceComb/go-chassis/core/config"
 	"github.com/ServiceComb/go-chassis/core/config/model"
 	"github.com/ServiceComb/go-chassis/core/lager"
+	"github.com/ServiceComb/go-chassis/core/registry"
 	"github.com/ServiceComb/http-client"
 	"github.com/stretchr/testify/assert"
 	"log"
@@ -32,7 +35,8 @@ func TestShuffle(t *testing.T) {
 	config.Init()
 	config.GlobalDefinition = &model.GlobalCfg{}
 	config.GlobalDefinition.Cse.Config.Client.APIVersion.Version = "v2"
-	memDiscovery := NewConfiCenterInit(nil, "default", false)
+	ccClient := new(MemDiscovery)
+	memDiscovery := ccClient.NewConfiCenterInit(nil, "default", false)
 
 	er := memDiscovery.Shuffle()
 
@@ -59,7 +63,8 @@ func TestShuffle(t *testing.T) {
 
 func TestRefreshMembersConfigAddNil(t *testing.T) {
 	t.Log("Testing RefreshMembers function")
-	memDiscovery := NewConfiCenterInit(nil, "default", false)
+	ccClient := new(MemDiscovery)
+	memDiscovery := ccClient.NewConfiCenterInit(nil, "default", false)
 
 	er := memDiscovery.RefreshMembers()
 	assert.NoError(t, er)
@@ -249,4 +254,119 @@ func TestMemDiscovery_HTTPDo(t *testing.T) {
 	if err := helper.Shutdown(nil); err != nil {
 		panic(err)
 	}
+}
+
+func TestInitConfigCenter(t *testing.T) {
+	t.Log("Testing InitConfigCenter function")
+	gopath := os.Getenv("GOPATH")
+	os.Setenv("CHASSIS_HOME", gopath+"/src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
+	err := config.Init()
+	registry.Enable()
+	config.GlobalDefinition = &model.GlobalCfg{}
+	config.GlobalDefinition.Cse.Config.Client.ServerURI = ""
+	ccClient := new(MemDiscovery)
+	err = ccClient.InitConfigCenter()
+	t.Log("HEllo", err)
+}
+
+func TestInitConfigCenterWithTenantEmpty(t *testing.T) {
+	t.Log("Testing InitConfigCenter function with autodiscovery true and tenant name empty")
+	gopath := os.Getenv("GOPATH")
+	os.Setenv("CHASSIS_HOME", gopath+"/src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
+	err := config.Init()
+	config.GlobalDefinition = &model.GlobalCfg{}
+	config.GlobalDefinition.Cse.Config.Client.Autodiscovery = true
+	config.GlobalDefinition.Cse.Config.Client.TenantName = ""
+	ccClient := new(MemDiscovery)
+	err = ccClient.InitConfigCenter()
+	t.Log("HEllo", err)
+}
+
+func TestInitConfigCenterWithEmptyURI(t *testing.T) {
+	t.Log("Testing InitConfigCenter function with empty ServerURI")
+	gopath := os.Getenv("GOPATH")
+	os.Setenv("CHASSIS_HOME", gopath+"/src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
+	err := config.Init()
+
+	config.GlobalDefinition = &model.GlobalCfg{}
+	config.GlobalDefinition.Cse.Config.Client.ServerURI = ""
+	ccClient := new(MemDiscovery)
+	err = ccClient.InitConfigCenter()
+	t.Log("HEllo", err)
+}
+
+func TestInitConfigCenterWithEmptyMicroservice(t *testing.T) {
+	t.Log("Testing InitConfigCenter function with empty microservice definition")
+	gopath := os.Getenv("GOPATH")
+	os.Setenv("CHASSIS_HOME", gopath+"/src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
+	err := config.Init()
+
+	config.MicroserviceDefinition = &model.MicroserviceCfg{}
+	ccClient := new(MemDiscovery)
+	err = ccClient.InitConfigCenter()
+	t.Log("HEllo", err)
+}
+
+func TestInitConfigCenterWithEnableSSl(t *testing.T) {
+	t.Log("Testing InitConfigCenter function without initializing any parameter")
+	gopath := os.Getenv("GOPATH")
+	os.Setenv("CHASSIS_HOME", gopath+"/src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
+	err := config.Init()
+
+	ccClient := new(MemDiscovery)
+	err = ccClient.InitConfigCenter()
+	t.Log("HEllo", err)
+}
+
+func TestInitConfigCenterWithInvalidURI(t *testing.T) {
+	t.Log("Testing InitConfigCenter function with Invalid URI")
+	gopath := os.Getenv("GOPATH")
+	os.Setenv("CHASSIS_HOME", gopath+"/src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
+	err := config.Init()
+	config.GlobalDefinition = &model.GlobalCfg{}
+	config.GlobalDefinition.Cse.Config.Client.ServerURI = "hdhhhd:njdj"
+	ccClient := new(MemDiscovery)
+	err = ccClient.InitConfigCenter()
+	t.Log("HEllo", err)
+}
+
+func TestInitConfigCenterWithSSL(t *testing.T) {
+	t.Log("Testing InitConfigCenter function with ServerURI https://127.0.0.1:8787")
+	gopath := os.Getenv("GOPATH")
+	os.Setenv("CHASSIS_HOME", gopath+"/src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
+	err := config.Init()
+	config.GlobalDefinition = &model.GlobalCfg{}
+	config.GlobalDefinition.Cse.Config.Client.ServerURI = "https://127.0.0.1:8787"
+	ccClient := new(MemDiscovery)
+	err = ccClient.InitConfigCenter()
+	t.Log("HEllo", err)
+}
+
+func TestInitConfigCenterWithInvalidName(t *testing.T) {
+	t.Log("Testing InitConfigCenter function with serverURI and microservice definition")
+	gopath := os.Getenv("GOPATH")
+	os.Setenv("CHASSIS_HOME", gopath+"/src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
+	err := config.Init()
+	config.GlobalDefinition = &model.GlobalCfg{}
+	name := model.MicServiceStruct{Name: "qwertyuiopasdfghjklgsgdfsgdgafdggsahhhhh"}
+	config.GlobalDefinition.Cse.Config.Client.ServerURI = "https://127.0.0.1:8787"
+	config.MicroserviceDefinition = &model.MicroserviceCfg{ServiceDescription: name}
+	ccClient := new(MemDiscovery)
+	err = ccClient.InitConfigCenter()
+	assert.Error(t, err)
+	t.Log("HEllo", err)
+}
+
+func TestEvent(t *testing.T) {
+	t.Log("Testing EventListener function")
+	factoryObj, _ := goarchaius.NewConfigFactory(nil)
+
+	factoryObj.Init()
+
+	gopath := os.Getenv("GOPATH")
+	os.Setenv("CHASSIS_HOME", gopath+"/src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
+	config.Init()
+	eventValue := &core.Event{Key: "refreshMode", Value: 6}
+	evt := EventListener{Name: "EventHandler", Factory: factoryObj}
+	evt.Event(eventValue)
 }
