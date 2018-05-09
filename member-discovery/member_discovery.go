@@ -25,7 +25,6 @@ import (
 	"github.com/ServiceComb/go-archaius/core"
 	"github.com/ServiceComb/go-cc-client"
 	"github.com/ServiceComb/go-cc-client/serializers"
-	"github.com/ServiceComb/go-chassis/core/archaius"
 	"github.com/ServiceComb/go-chassis/core/common"
 	"github.com/ServiceComb/go-chassis/core/config"
 	"github.com/ServiceComb/go-chassis/core/endpoint-discovery"
@@ -607,12 +606,6 @@ func getUniqueIDForDimInfo() string {
 }
 
 func (memDis *MemDiscovery) initConfigCenter(ccEndpoint, dimensionInfo, tenantName string, enableSSL bool, tlsConfig *tls.Config) error {
-	refreshMode := archaius.GetInt("cse.config.client.refreshMode", common.DefaultRefreshMode)
-	if refreshMode != 0 && refreshMode != 1 {
-		err := errors.New(client.RefreshModeError)
-		lager.Logger.Error(client.RefreshModeError, err)
-		return err
-	}
 	memDiscovery := memDis.NewConfiCenterInit(tlsConfig, tenantName, enableSSL)
 
 	configCenters := strings.Split(ccEndpoint, ",")
