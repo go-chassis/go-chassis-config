@@ -36,6 +36,11 @@ func (apolloClient *ApolloClient) NewApolloClient() {
 	lager.Logger.Debugf("ApolloClient Initialized successfully")
 }
 
+// Init will initialize the needed parameters
+func (apolloClient *ApolloClient) Init() {
+	lager.Logger.Debugf("ApolloClient Initialized successfully")
+}
+
 // HTTPDo Use http-client package for rest communication
 func (apolloClient *ApolloClient) HTTPDo(method string, rawURL string, headers http.Header, body []byte) (resp *http.Response, err error) {
 	return apolloClient.client.HttpDo(method, rawURL, headers, body)
@@ -154,4 +159,22 @@ func composeURL() string {
 	pullConfigurationURL = strings.Replace(pullConfigurationURL, ":clusterName", config.GlobalDefinition.Cse.Config.Client.ClusterName, 1)
 	pullConfigurationURL = strings.Replace(pullConfigurationURL, ":nameSpace", config.GlobalDefinition.Cse.Config.Client.ApolloNameSpace, 1)
 	return pullConfigurationURL
+}
+
+//PullConfigsByDI returns the configuration for additional Projects in Apollo
+func (apolloClient *ApolloClient) PullConfigsByDI(dimensionInfo, diInfo string) (map[string]map[string]interface{}, error) {
+	// TODO Return the configurations for customized Projects in Apollo Configs
+	return nil, nil
+}
+
+//GetWorkingConfigCenterIP returns the list of active Apollo Servers in the env
+func (apolloClient *ApolloClient) GetWorkingConfigCenterIP(entryPoint []string) ([]string, error) {
+	//TODO returns the list of active apollo servers in the env
+	return nil, nil
+}
+
+//GetConfigServer is a method used for getting server configuration
+func (apolloClient *ApolloClient) GetConfigServer() ([]string, error) {
+	//TODO returns the list of all the Apollo Servers in the env registered with Service-Center
+	return nil, nil
 }
