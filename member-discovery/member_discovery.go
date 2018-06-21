@@ -27,12 +27,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ServiceComb/go-cc-client"
+	"github.com/ServiceComb/go-archaius/lager"
 	"github.com/ServiceComb/go-cc-client/serializers"
-
-	"github.com/ServiceComb/go-chassis/core/common"
-	"github.com/ServiceComb/go-chassis/core/config"
-	"github.com/ServiceComb/go-chassis/core/lager"
 	"github.com/ServiceComb/http-client"
 )
 
@@ -46,6 +42,11 @@ var (
 	ConfigPath = ""
 	//ConfigRefreshPath is a variable of type string
 	ConfigRefreshPath = ""
+	//MemberDiscoveryService is a variable
+	MemberDiscoveryService MemberDiscovery
+	autoDiscoverable       = false
+	apiVersionConfig       = ""
+	environmentConfig      = ""
 )
 
 const (
@@ -56,16 +57,17 @@ const (
 	//HeaderUserAgent is a variable of type string
 	HeaderUserAgent = "User-Agent"
 	//HeaderEnvironment specifies the environment of a service
-	HeaderEnvironment  = "X-Environment"
-	members            = "/configuration/members"
-	dimensionsInfo     = "dimensionsInfo"
-	dynamicConfigAPI   = `/configuration/refresh/items`
-	getConfigAPI       = `/configuration/items`
-	defaultContentType = "application/json"
+	HeaderEnvironment        = "X-Environment"
+	members                  = "/configuration/members"
+	dimensionsInfo           = "dimensionsInfo"
+	dynamicConfigAPI         = `/configuration/refresh/items`
+	getConfigAPI             = `/configuration/items`
+	defaultContentType       = "application/json"
+	envProjectID             = "CSE_PROJECT_ID"
+	packageInitError         = "package not initialize successfully"
+	emptyConfigServerMembers = "empty config server member"
+	emptyConfigServerConfig  = "empty config server passed"
 )
-
-//MemberDiscoveryService is a variable
-var MemberDiscoveryService MemberDiscovery
 
 //MemberDiscovery is a interface
 type MemberDiscovery interface {
@@ -102,7 +104,7 @@ type Members struct {
 }
 
 //NewConfiCenterInit is a function
-func NewConfiCenterInit(tlsConfig *tls.Config, tenantName string, enableSSL bool) MemberDiscovery {
+func NewConfiCenterInit(tlsConfig *tls.Config, tenantName string, enableSSL bool, apiPathVersion string, autoDiscovery bool, env string) MemberDiscovery {
 	if memDiscovery == nil {
 		memDiscovery = new(MemDiscovery)
 		//memDiscovery.Logger = logger
@@ -110,8 +112,11 @@ func NewConfiCenterInit(tlsConfig *tls.Config, tenantName string, enableSSL bool
 		memDiscovery.TenantName = tenantName
 		memDiscovery.EnableSSL = enableSSL
 		var apiVersion string
+		apiVersionConfig = apiPathVersion
+		autoDiscoverable = autoDiscovery
+		environmentConfig = env
 
-		switch config.GlobalDefinition.Cse.Config.Client.APIVersion.Version {
+		switch apiVersionConfig {
 		case "v2":
 			apiVersion = "v2"
 		case "V2":
@@ -154,7 +159,7 @@ func updateAPIPath(apiVersion string) {
 
 	//Check for the env Name in Container to get Domain Name
 	//Default value is  "default"
-	projectID, isExsist := os.LookupEnv(common.EnvProjectID)
+	projectID, isExsist := os.LookupEnv(envProjectID)
 	if !isExsist {
 		projectID = "default"
 	}
@@ -182,8 +187,8 @@ func (memDis *MemDiscovery) ConfigurationInit(initConfigServer []string) error {
 
 	if memDis.ConfigServerAddresses == nil {
 		if initConfigServer == nil && len(initConfigServer) == 0 {
-			err := errors.New(client.EmptyConfigServerConfig)
-			lager.Logger.Error(client.EmptyConfigServerConfig, err)
+			err := errors.New(emptyConfigServerConfig)
+			lager.Logger.Error(emptyConfigServerConfig, err)
 			return err
 		}
 
@@ -202,18 +207,18 @@ func (memDis *MemDiscovery) ConfigurationInit(initConfigServer []string) error {
 //GetConfigServer is a method used for getting server configuration
 func (memDis *MemDiscovery) GetConfigServer() ([]string, error) {
 	if memDis.IsInit == false {
-		err := errors.New(client.PackageInitError)
-		lager.Logger.Error(client.PackageInitError, err)
+		err := errors.New(packageInitError)
+		lager.Logger.Error(packageInitError, err)
 		return nil, err
 	}
 
 	if len(memDis.ConfigServerAddresses) == 0 {
-		err := errors.New(client.EmptyConfigServerMembers)
-		lager.Logger.Error(client.EmptyConfigServerMembers, err)
+		err := errors.New(emptyConfigServerMembers)
+		lager.Logger.Error(emptyConfigServerMembers, err)
 		return nil, err
 	}
 
-	if config.GlobalDefinition.Cse.Config.Client.Autodiscovery {
+	if autoDiscoverable {
 		err := memDis.RefreshMembers()
 		if err != nil {
 			lager.Logger.Error("refresh member is failed", err)
@@ -327,8 +332,8 @@ func GetDefaultHeaders(tenantName string) http.Header {
 		HeaderUserAgent:   []string{"cse-configcenter-client/1.0.0"},
 		HeaderTenantName:  []string{tenantName},
 	}
-	if config.MicroserviceDefinition.ServiceDescription.Environment != "" {
-		headers.Set(HeaderEnvironment, config.MicroserviceDefinition.ServiceDescription.Environment)
+	if environmentConfig != "" {
+		headers.Set(HeaderEnvironment, environmentConfig)
 	}
 
 	return headers
@@ -337,8 +342,8 @@ func GetDefaultHeaders(tenantName string) http.Header {
 //Shuffle is a method to log error
 func (memDis *MemDiscovery) Shuffle() error {
 	if memDis.ConfigServerAddresses == nil || len(memDis.ConfigServerAddresses) == 0 {
-		err := errors.New(client.EmptyConfigServerConfig)
-		lager.Logger.Error(client.EmptyConfigServerConfig, err)
+		err := errors.New(emptyConfigServerConfig)
+		lager.Logger.Error(emptyConfigServerConfig, err)
 		return err
 	}
 
@@ -415,6 +420,10 @@ func (memDis *MemDiscovery) PullConfig(serviceName, version, app, env, key, cont
 	return configurationsValue, nil
 }
 
+// Init intializes the client
+func (memDis *MemDiscovery) Init() {
+}
+
 // pullConfigurationsFromServer pulls all the configuration from Config-Server based on dimesionInfo
 func (memDis *MemDiscovery) pullConfigurationsFromServer(dimensionInfo string) (map[string]interface{}, error) {
 
@@ -466,4 +475,53 @@ func (memDis *MemDiscovery) pullConfigurationsFromServer(dimensionInfo string) (
 		}
 	}
 	return config, nil
+}
+
+// PullConfigsByDI pulls the configuration for custom DimensionInfo
+func (memDis *MemDiscovery) PullConfigsByDI(dimensionInfo, diInfo string) (map[string]map[string]interface{}, error) {
+	// update dimensionInfo value
+	type GetConfigAPI map[string]map[string]interface{}
+
+	var (
+		count int
+	)
+	configAPIRes := make(GetConfigAPI)
+	configServerHost, err := memDis.GetConfigServer()
+	if err != nil {
+		err := memDis.RefreshMembers()
+		if err != nil {
+			lager.Logger.Error("error in refreshing config client members", err)
+			return nil, errors.New("error in refreshing config client members")
+		}
+		memDis.Shuffle()
+		configServerHost, _ = memDis.GetConfigServer()
+	}
+
+	confgCenterIP := len(configServerHost)
+	for _, server := range configServerHost {
+		parsedDimensionInfo := strings.Replace(diInfo, "#", "%23", -1)
+		resp, err := memDis.HTTPDo("GET", server+ConfigPath+"?"+dimensionsInfo+"="+parsedDimensionInfo, nil, nil)
+		if err != nil {
+			count++
+			if confgCenterIP <= count {
+				return nil, err
+			}
+			lager.Logger.Error("config source item request failed with error", err)
+			continue
+		}
+		var body []byte
+		body, err = ioutil.ReadAll(resp.Body)
+		contentType := resp.Header.Get("Content-Type")
+		if len(contentType) > 0 && (len(defaultContentType) > 0 && !strings.Contains(contentType, defaultContentType)) {
+			lager.Logger.Error("config source item request failed with error", errors.New("content type mis match"))
+			continue
+		}
+		error := serializers.Decode(defaultContentType, body, &configAPIRes)
+		if error != nil {
+			lager.Logger.Error("config source item request failed with error", errors.New("error in decoding the request:"+error.Error()))
+			lager.Logger.Debugf("config source item request failed with error", error, "with body", body)
+			continue
+		}
+	}
+	return configAPIRes, nil
 }
