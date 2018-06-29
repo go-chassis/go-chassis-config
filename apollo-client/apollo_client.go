@@ -166,15 +166,3 @@ func (apolloClient *ApolloClient) PullConfigsByDI(dimensionInfo, diInfo string) 
 	// TODO Return the configurations for customized Projects in Apollo Configs
 	return nil, nil
 }
-
-//GetWorkingConfigCenterIP returns the list of active Apollo Servers in the env
-func (apolloClient *ApolloClient) GetWorkingConfigCenterIP(entryPoint []string) ([]string, error) {
-	//TODO returns the list of active apollo servers in the env
-	return nil, nil
-}
-
-//GetConfigServer is a method used for getting server configuration
-func (apolloClient *ApolloClient) GetConfigServer() ([]string, error) {
-	//TODO returns the list of all the Apollo Servers in the env registered with Service-Center
-	return nil, nil
-}

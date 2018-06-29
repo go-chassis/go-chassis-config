@@ -24,18 +24,14 @@ func InstallConfigClientPlugin(name string, f func(endpoint, serviceName, app, e
 
 //ConfigClient is the interface of config server client, it has basic func to interact with config server
 type ConfigClient interface {
+	//Init the Configuration for the Server
+	Init()
 	//PullConfigs pull all configs from remote
 	PullConfigs(serviceName, version, app, env string) (map[string]interface{}, error)
 	//PullConfig pull one config from remote
 	PullConfig(serviceName, version, app, env, key, contentType string) (interface{}, error)
-	//Init the Configuration for the Server
-	Init()
 	//PullConfigsByDI pulls the configurations with customized DimensionInfo/Project
 	PullConfigsByDI(dimensionInfo, diInfo string) (map[string]map[string]interface{}, error)
-	//GetConfigServer returns the list of configuration servers available in the env
-	GetConfigServer() ([]string, error)
-	//GetWorkingConfigCenterIP returns the list of working config centre IP's
-	GetWorkingConfigCenterIP(entryPoint []string) ([]string, error)
 }
 
 //Enable enable config server client
@@ -69,5 +65,7 @@ func InitConfigApollo(endpoint, serviceName, app, env, version string, tlsConfig
 
 //InitConfigCenterNew initialize the Config-Center Client
 func InitConfigCenterNew(endpoint, serviceName, app, env, version string, tlsConfig *tls.Config) ConfigClient {
-	return &memberdiscovery.MemDiscovery{}
+	configSourceClient := &memberdiscovery.ConfigSourceClient{}
+	configSourceClient.Init()
+	return configSourceClient
 }

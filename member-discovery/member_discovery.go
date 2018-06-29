@@ -78,6 +78,11 @@ type MemberDiscovery interface {
 	GetWorkingConfigCenterIP([]string) ([]string, error)
 }
 
+//ConfigSourceClient is Client Implementation of ConfigClient
+type ConfigSourceClient struct {
+	memDiscovery *MemDiscovery
+}
+
 //MemDiscovery is a struct
 type MemDiscovery struct {
 	ConfigServerAddresses []string
@@ -393,10 +398,10 @@ func (memDis *MemDiscovery) GetWorkingConfigCenterIP(entryPoint []string) ([]str
 }
 
 // PullConfigs is the implementation of ConfigClient to pull all the configurations from Config-Server
-func (memDis *MemDiscovery) PullConfigs(serviceName, version, app, env string) (map[string]interface{}, error) {
+func (cclient *ConfigSourceClient) PullConfigs(serviceName, version, app, env string) (map[string]interface{}, error) {
 
 	// serviceName is the dimensionInfo passed from ConfigClient (small hack)
-	configurations, error := memDis.pullConfigurationsFromServer(serviceName)
+	configurations, error := cclient.memDiscovery.pullConfigurationsFromServer(serviceName)
 	if error != nil {
 		return nil, error
 	}
@@ -404,11 +409,11 @@ func (memDis *MemDiscovery) PullConfigs(serviceName, version, app, env string) (
 }
 
 // PullConfig is the implementation of ConfigClient to pull specific configurations from Config-Server
-func (memDis *MemDiscovery) PullConfig(serviceName, version, app, env, key, contentType string) (interface{}, error) {
+func (cclient *ConfigSourceClient) PullConfig(serviceName, version, app, env, key, contentType string) (interface{}, error) {
 
 	// serviceName is the dimensionInfo passed from ConfigClient (small hack)
 	// TODO use the contentType to return the configurations
-	configurations, error := memDis.pullConfigurationsFromServer(serviceName)
+	configurations, error := cclient.memDiscovery.pullConfigurationsFromServer(serviceName)
 	if error != nil {
 		return nil, error
 	}
@@ -421,7 +426,9 @@ func (memDis *MemDiscovery) PullConfig(serviceName, version, app, env, key, cont
 }
 
 // Init intializes the client
-func (memDis *MemDiscovery) Init() {
+func (cclient *ConfigSourceClient) Init() {
+
+	cclient.memDiscovery = memDiscovery
 }
 
 // pullConfigurationsFromServer pulls all the configuration from Config-Server based on dimesionInfo
@@ -478,7 +485,7 @@ func (memDis *MemDiscovery) pullConfigurationsFromServer(dimensionInfo string) (
 }
 
 // PullConfigsByDI pulls the configuration for custom DimensionInfo
-func (memDis *MemDiscovery) PullConfigsByDI(dimensionInfo, diInfo string) (map[string]map[string]interface{}, error) {
+func (cclient *ConfigSourceClient) PullConfigsByDI(dimensionInfo, diInfo string) (map[string]map[string]interface{}, error) {
 	// update dimensionInfo value
 	type GetConfigAPI map[string]map[string]interface{}
 
@@ -486,21 +493,21 @@ func (memDis *MemDiscovery) PullConfigsByDI(dimensionInfo, diInfo string) (map[s
 		count int
 	)
 	configAPIRes := make(GetConfigAPI)
-	configServerHost, err := memDis.GetConfigServer()
+	configServerHost, err := cclient.memDiscovery.GetConfigServer()
 	if err != nil {
-		err := memDis.RefreshMembers()
+		err := cclient.memDiscovery.RefreshMembers()
 		if err != nil {
 			lager.Logger.Error("error in refreshing config client members", err)
 			return nil, errors.New("error in refreshing config client members")
 		}
-		memDis.Shuffle()
-		configServerHost, _ = memDis.GetConfigServer()
+		cclient.memDiscovery.Shuffle()
+		configServerHost, _ = cclient.memDiscovery.GetConfigServer()
 	}
 
 	confgCenterIP := len(configServerHost)
 	for _, server := range configServerHost {
 		parsedDimensionInfo := strings.Replace(diInfo, "#", "%23", -1)
-		resp, err := memDis.HTTPDo("GET", server+ConfigPath+"?"+dimensionsInfo+"="+parsedDimensionInfo, nil, nil)
+		resp, err := cclient.memDiscovery.HTTPDo("GET", server+ConfigPath+"?"+dimensionsInfo+"="+parsedDimensionInfo, nil, nil)
 		if err != nil {
 			count++
 			if confgCenterIP <= count {
