@@ -1,7 +1,9 @@
 package apolloclient
 
 import (
+	"crypto/tls"
 	"errors"
+	"github.com/ServiceComb/go-cc-client"
 	"github.com/ServiceComb/go-cc-client/serializers"
 	"github.com/ServiceComb/go-chassis/core/config"
 	"github.com/ServiceComb/go-chassis/core/lager"
@@ -17,8 +19,12 @@ type ApolloClient struct {
 	client *httpclient.URLClient
 }
 
-const apolloServerAPI = ":ServerURL/configs/:appID/:clusterName/:nameSpace"
-const defaultContentType = "application/json"
+const (
+	apolloServerAPI    = ":ServerURL/configs/:appID/:clusterName/:nameSpace"
+	defaultContentType = "application/json"
+	//Name of the Plugin
+	Name = "apollo"
+)
 
 // NewApolloClient init's the necessary objects needed for seamless communication to apollo Server
 func (apolloClient *ApolloClient) NewApolloClient() {
@@ -165,4 +171,15 @@ func composeURL() string {
 func (apolloClient *ApolloClient) PullConfigsByDI(dimensionInfo, diInfo string) (map[string]map[string]interface{}, error) {
 	// TODO Return the configurations for customized Projects in Apollo Configs
 	return nil, nil
+}
+
+//InitConfigApollo initialize the Apollo Client
+func InitConfigApollo(endpoint, serviceName, app, env, version string, tlsConfig *tls.Config) client.ConfigClient {
+	apolloClient := &ApolloClient{}
+	apolloClient.NewApolloClient()
+	return apolloClient
+}
+
+func init() {
+	client.InstallConfigClientPlugin(Name, InitConfigApollo)
 }

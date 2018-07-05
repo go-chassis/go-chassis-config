@@ -1,4 +1,4 @@
-package memberdiscovery
+package configcenterclient
 
 import (
 	"math/rand"
@@ -32,7 +32,7 @@ func TestShuffle(t *testing.T) {
 	config.Init()
 	config.GlobalDefinition = &model.GlobalCfg{}
 	config.GlobalDefinition.Cse.Config.Client.APIVersion.Version = "v2"
-	memDiscovery := NewConfiCenterInit(nil, "default", false)
+	memDiscovery := NewConfiCenterInit(nil, "default", false, "v3", false, "")
 
 	er := memDiscovery.Shuffle()
 
@@ -59,7 +59,7 @@ func TestShuffle(t *testing.T) {
 
 func TestRefreshMembersConfigAddNil(t *testing.T) {
 	t.Log("Testing RefreshMembers function")
-	memDiscovery := NewConfiCenterInit(nil, "default", false)
+	memDiscovery := NewConfiCenterInit(nil, "default", false, "v3", false, "")
 
 	er := memDiscovery.RefreshMembers()
 	assert.NoError(t, er)

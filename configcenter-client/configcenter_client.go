@@ -15,7 +15,7 @@
  */
 
 // Package memberdiscovery created on 2017/6/20.
-package memberdiscovery
+package configcenterclient
 
 import (
 	"crypto/tls"
@@ -28,6 +28,7 @@ import (
 	"sync"
 
 	"github.com/ServiceComb/go-archaius/lager"
+	"github.com/ServiceComb/go-cc-client"
 	"github.com/ServiceComb/go-cc-client/serializers"
 	"github.com/ServiceComb/http-client"
 )
@@ -67,6 +68,8 @@ const (
 	packageInitError         = "package not initialize successfully"
 	emptyConfigServerMembers = "empty config server member"
 	emptyConfigServerConfig  = "empty config server passed"
+	// Name of the Plugin
+	Name = "config_center"
 )
 
 //MemberDiscovery is a interface
@@ -531,4 +534,15 @@ func (cclient *ConfigSourceClient) PullConfigsByDI(dimensionInfo, diInfo string)
 		}
 	}
 	return configAPIRes, nil
+}
+
+func init() {
+	client.InstallConfigClientPlugin(Name, InitConfigCenterNew)
+}
+
+//InitConfigCenterNew initialize the Config-Center Client
+func InitConfigCenterNew(endpoint, serviceName, app, env, version string, tlsConfig *tls.Config) client.ConfigClient {
+	configSourceClient := &ConfigSourceClient{}
+	configSourceClient.Init()
+	return configSourceClient
 }
