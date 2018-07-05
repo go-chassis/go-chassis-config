@@ -3,7 +3,7 @@ package apolloclient
 import (
 	"crypto/tls"
 	"errors"
-	cc_client "github.com/ServiceComb/go-cc-client"
+	"github.com/ServiceComb/go-cc-client"
 	"github.com/ServiceComb/go-cc-client/serializers"
 	"github.com/ServiceComb/go-chassis/core/config"
 	"github.com/ServiceComb/go-chassis/core/lager"
@@ -174,12 +174,12 @@ func (apolloClient *ApolloClient) PullConfigsByDI(dimensionInfo, diInfo string) 
 }
 
 //InitConfigApollo initialize the Apollo Client
-func InitConfigApollo(endpoint, serviceName, app, env, version string, tlsConfig *tls.Config) cc_client.ConfigClient {
+func InitConfigApollo(endpoint, serviceName, app, env, version string, tlsConfig *tls.Config) client.ConfigClient {
 	apolloClient := &ApolloClient{}
 	apolloClient.NewApolloClient()
 	return apolloClient
 }
 
 func init() {
-	cc_client.InstallConfigClientPlugin(Name, InitConfigApollo)
+	client.InstallConfigClientPlugin(Name, InitConfigApollo)
 }

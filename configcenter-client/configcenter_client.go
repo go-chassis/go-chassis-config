@@ -28,7 +28,7 @@ import (
 	"sync"
 
 	"github.com/ServiceComb/go-archaius/lager"
-	cc_client "github.com/ServiceComb/go-cc-client"
+	"github.com/ServiceComb/go-cc-client"
 	"github.com/ServiceComb/go-cc-client/serializers"
 	"github.com/ServiceComb/http-client"
 )
@@ -537,11 +537,11 @@ func (cclient *ConfigSourceClient) PullConfigsByDI(dimensionInfo, diInfo string)
 }
 
 func init() {
-	cc_client.InstallConfigClientPlugin(Name, InitConfigCenterNew)
+	client.InstallConfigClientPlugin(Name, InitConfigCenterNew)
 }
 
 //InitConfigCenterNew initialize the Config-Center Client
-func InitConfigCenterNew(endpoint, serviceName, app, env, version string, tlsConfig *tls.Config) cc_client.ConfigClient {
+func InitConfigCenterNew(endpoint, serviceName, app, env, version string, tlsConfig *tls.Config) client.ConfigClient {
 	configSourceClient := &ConfigSourceClient{}
 	configSourceClient.Init()
 	return configSourceClient
