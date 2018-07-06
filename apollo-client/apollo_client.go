@@ -100,7 +100,9 @@ func (apolloClient *ApolloClient) PullConfigs(serviceName, version, app, env str
 
 	lager.Logger.Debugf("The Marshaled response of the body is : ", configurations["configurations"])
 
-	return configurations, nil
+	var configValues map[string]interface{}
+	configValues = configurations["configurations"].(map[string]interface{})
+	return configValues, nil
 }
 
 // PullConfig is the implementation of the ConfigClient
