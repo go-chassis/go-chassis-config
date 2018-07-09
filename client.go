@@ -37,6 +37,7 @@ func Enable(clientType string) {
 	var tlsConfig *tls.Config
 	DefaultClient = plugins("", "", "", "", "", tlsConfig)
 
-	//Initiaizing the Client
+	//Initializing the Client
 	DefaultClient.Init()
+	log.Printf("%s Plugin is enabled", clientType)
 }
