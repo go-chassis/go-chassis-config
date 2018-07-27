@@ -27,10 +27,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ServiceComb/go-archaius/lager"
-	"github.com/ServiceComb/go-cc-client"
-	"github.com/ServiceComb/go-cc-client/serializers"
-	"github.com/ServiceComb/http-client"
+	"github.com/go-chassis/go-archaius/lager"
+	"github.com/go-chassis/go-cc-client"
+	"github.com/go-chassis/go-cc-client/serializers"
+	"github.com/go-chassis/http-client"
 )
 
 var (

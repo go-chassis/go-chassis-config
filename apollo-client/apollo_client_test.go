@@ -2,9 +2,9 @@ package apolloclient
 
 import (
 	"encoding/json"
-	"github.com/ServiceComb/go-chassis/core/config"
-	"github.com/ServiceComb/go-chassis/core/config/model"
-	"github.com/ServiceComb/go-chassis/core/lager"
+	"github.com/go-chassis/go-chassis/core/config"
+	"github.com/go-chassis/go-chassis/core/config/model"
+	"github.com/go-chassis/go-chassis/core/lager"
 	"github.com/stretchr/testify/assert"
 	"log"
 	"net/http"
