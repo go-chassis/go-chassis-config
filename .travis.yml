@@ -5,10 +5,10 @@ go:
 install: true
 
 before_script:
-  - mkdir -p $HOME/gopath/src/github.com/ServiceComb/go-cc-client
-  - rsync -az ${TRAVIS_BUILD_DIR}/ $HOME/gopath/src/github.com/ServiceComb/go-cc-client/
-  - export TRAVIS_BUILD_DIR=$HOME/gopath/src/github.com/ServiceComb/go-cc-client
-  - cd $HOME/gopath/src/github.com/ServiceComb/go-cc-client
+  - mkdir -p $HOME/gopath/src/github.com/go-chassis/go-cc-client
+  - rsync -az ${TRAVIS_BUILD_DIR}/ $HOME/gopath/src/github.com/go-chassis/go-cc-client/
+  - export TRAVIS_BUILD_DIR=$HOME/gopath/src/github.com/go-chassis/go-cc-client
+  - cd $HOME/gopath/src/github.com/go-chassis/go-cc-client
 jobs:
   include:
     - stage: Format Checker
