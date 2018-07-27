@@ -11,12 +11,12 @@ mkdir -p $GOPATH/src/github.com/cenkalti
 
 go get gopkg.in/yaml.v2
 
-cd $GOPATH/src/github.com/ServiceComb
-git clone https://github.com/ServiceComb/go-chassis.git
-git clone https://github.com/ServiceComb/http-client.git
-git clone https://github.com/ServiceComb/paas-lager.git
-git clone https://github.com/ServiceComb/auth.git
-git clone https://github.com/ServiceComb/go-archaius.git
+cd $GOPATH/src/github.com/go-chassis
+git clone https://github.com/go-chassis/go-chassis.git
+git clone https://github.com/go-chassis/http-client.git
+git clone https://github.com/go-chassis/paas-lager.git
+git clone https://github.com/go-chassis/auth.git
+git clone https://github.com/go-chassis/go-archaius.git
 
 cd $GOPATH/src/github.com/fsnotify
 git clone https://github.com/fsnotify/fsnotify.git
@@ -43,7 +43,7 @@ git clone https://github.com/cenkalti/backoff.git
 cd backoff
 git reset --hard 3db60c813733fce657c114634171689bbf1f8dee
 
-cd $GOPATH/src/github.com/ServiceComb/go-cc-client
+cd $GOPATH/src/github.com/go-chassis/go-cc-client
 #Start unit test
 for d in $(go list ./...); do
     echo $d
