@@ -49,7 +49,7 @@ func (apolloClient *ApolloClient) Init() {
 
 // HTTPDo Use http-client package for rest communication
 func (apolloClient *ApolloClient) HTTPDo(method string, rawURL string, headers http.Header, body []byte) (resp *http.Response, err error) {
-	return apolloClient.client.HttpDo(method, rawURL, headers, body)
+	return apolloClient.client.HTTPDo(method, rawURL, headers, body)
 }
 
 // PullConfigs is the implementation of ConfigClient and pulls all the configuration for a given serviceName
