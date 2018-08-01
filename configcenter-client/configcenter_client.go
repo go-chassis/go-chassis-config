@@ -30,7 +30,7 @@ import (
 	"github.com/go-chassis/go-archaius/lager"
 	"github.com/go-chassis/go-cc-client"
 	"github.com/go-chassis/go-cc-client/serializers"
-	"github.com/go-chassis/http-client"
+	"github.com/go-chassis/go-chassis/pkg/httpclient"
 )
 
 var (
@@ -159,7 +159,7 @@ func (memDis *MemDiscovery) HTTPDo(method string, rawURL string, headers http.He
 	for k, v := range GetDefaultHeaders(memDis.TenantName) {
 		headers[k] = v
 	}
-	return memDis.client.HttpDo(method, rawURL, headers, body)
+	return memDis.client.HTTPDo(method, rawURL, headers, body)
 }
 
 //Update the Base PATH and HEADERS Based on the version of ConfigCenter used.
