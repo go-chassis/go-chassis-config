@@ -10,7 +10,7 @@ import (
 	"github.com/go-chassis/go-chassis/core/config"
 	"github.com/go-chassis/go-chassis/core/config/model"
 	"github.com/go-chassis/go-chassis/core/lager"
-	"github.com/go-chassis/http-client"
+	"github.com/go-chassis/go-chassis/pkg/httpclient"
 	"github.com/stretchr/testify/assert"
 	"log"
 	"net/http"

@@ -7,7 +7,7 @@ import (
 	"github.com/go-chassis/go-cc-client/serializers"
 	"github.com/go-chassis/go-chassis/core/config"
 	"github.com/go-chassis/go-chassis/core/lager"
-	"github.com/go-chassis/http-client"
+	"github.com/go-chassis/go-chassis/pkg/httpclient"
 	"io/ioutil"
 	"net/http"
 	"strings"
