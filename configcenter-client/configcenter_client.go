@@ -20,6 +20,7 @@ package configcenterclient
 import (
 	"crypto/tls"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -258,78 +259,44 @@ func (memDis *MemDiscovery) GetConfigServer() ([]string, error) {
 
 //RefreshMembers is a method
 func (memDis *MemDiscovery) RefreshMembers() error {
-	var (
-		errorStatus bool
-		errorInfo   error
-		count       int
-	)
+	return nil
+}
 
-	endpointMap := make(map[string]bool)
-
-	if len(memDis.ConfigServerAddresses) == 0 {
-		return nil
+func (memDis *MemDiscovery) call(method string, api string, headers http.Header, body []byte, s interface{}) error {
+	hosts, err := memDis.GetConfigServer()
+	if err != nil {
+		lager.Logger.Error("Get config server addr failed", err)
 	}
-
-	tmpConfigAddrs := memDis.ConfigServerAddresses
-	confgCenterIP := len(tmpConfigAddrs)
-	instances := new(Members)
-	for _, host := range tmpConfigAddrs {
-		errorStatus = false
-		lager.Logger.Debugf("RefreshMembers hosts ", host)
-		resp, err := memDis.HTTPDo("GET", host+ConfigMembersPath, nil, nil)
-		if err != nil {
-			errorStatus = true
-			errorInfo = err
-			count++
-			if confgCenterIP > count {
-				errorStatus = false
-			}
-			lager.Logger.Error("member request failed with error", err)
-			continue
-		}
-		var body []byte
-		body, err = ioutil.ReadAll(resp.Body)
-		contentType := resp.Header.Get("Content-Type")
-		if len(contentType) > 0 && (len(defaultContentType) > 0 && !strings.Contains(contentType, defaultContentType)) {
-			lager.Logger.Error("config source member request failed with error", errors.New("content type mis match"))
-			continue
-		}
-		error := serializers.Decode(defaultContentType, body, &instances)
-		if error != nil {
-			lager.Logger.Error("config source member request failed with error", errors.New("error in decoding the request:"+error.Error()))
-			lager.Logger.Debugf("config source member request failed with error", error, "with body", body)
-			continue
-		}
-		for _, instance := range instances.Instances {
-			if instance.Status != StatusUP {
-				continue
-			}
-			for _, entryPoint := range instance.EntryPoints {
-				endpointMap[entryPoint] = memDis.EnableSSL
-			}
-		}
+	index := rand.Int() % len(memDis.ConfigServerAddresses)
+	host := hosts[index]
+	rawUri := host + api
+	errMsgPrefix := fmt.Sprintf("Call %s failed", rawUri)
+	resp, err := memDis.HTTPDo(method, rawUri, headers, body)
+	if err != nil {
+		lager.Logger.Error(errMsgPrefix, err)
+		return err
 	}
-	if errorStatus {
-		return errorInfo
+	body, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		lager.Logger.Error(errMsgPrefix, err)
+		return err
 	}
-
-	memDis.Lock()
-	// flush old config
-	memDis.ConfigServerAddresses = make([]string, 0)
-	var entryPoint string
-	for endPoint, isHTTPSEnable := range endpointMap {
-		parsedEndpoint := strings.Split(endPoint, `://`)
-		if len(parsedEndpoint) != 2 {
-			continue
-		}
-		if isHTTPSEnable {
-			entryPoint = `https://` + parsedEndpoint[1]
-		} else {
-			entryPoint = `http://` + parsedEndpoint[1]
-		}
-		memDis.ConfigServerAddresses = append(memDis.ConfigServerAddresses, entryPoint)
+	if !isStatusSuccess(resp.StatusCode) {
+		err = fmt.Errorf("statusCode: %d, resp body: %s", resp.StatusCode, body)
+		lager.Logger.Error(errMsgPrefix, err)
+		return err
 	}
-	memDis.Unlock()
+	contentType := resp.Header.Get("Content-Type")
+	if len(contentType) > 0 && (len(defaultContentType) > 0 && !strings.Contains(contentType, defaultContentType)) {
+		err = fmt.Errorf("content type not %s", defaultContentType)
+		lager.Logger.Error(errMsgPrefix, err)
+		return err
+	}
+	err = serializers.Decode(defaultContentType, body, s)
+	if err != nil {
+		lager.Logger.Error("Decode failed", err)
+		return err
+	}
 	return nil
 }
 
@@ -373,31 +340,7 @@ func (memDis *MemDiscovery) Shuffle() error {
 
 //GetWorkingConfigCenterIP is a method which gets working configuration center IP
 func (memDis *MemDiscovery) GetWorkingConfigCenterIP(entryPoint []string) ([]string, error) {
-	instances := new(Members)
-	ConfigServerAddresses := make([]string, 0)
-	for _, server := range entryPoint {
-		resp, err := memDis.HTTPDo("GET", server+ConfigMembersPath, nil, nil)
-		if err != nil {
-			lager.Logger.Error("config source member request failed with error", err)
-			continue
-		}
-		var body []byte
-		body, err = ioutil.ReadAll(resp.Body)
-		contentType := resp.Header.Get("Content-Type")
-		if len(contentType) > 0 && (len(defaultContentType) > 0 && !strings.Contains(contentType, defaultContentType)) {
-			lager.Logger.Error("config source member request failed with error", errors.New("content type mis match"))
-			continue
-		}
-		error := serializers.Decode(defaultContentType, body, &instances)
-		if error != nil {
-			lager.Logger.Error("config source member request failed with error", errors.New("error in decoding the request:"+error.Error()))
-			lager.Logger.Debugf("config source member request failed with error", error, "with body", body)
-			continue
-		}
-
-		ConfigServerAddresses = append(ConfigServerAddresses, server)
-	}
-	return ConfigServerAddresses, nil
+	return entryPoint, nil
 }
 
 // PullConfigs is the implementation of ConfigClient to pull all the configurations from Config-Server
@@ -436,54 +379,22 @@ func (cclient *ConfigSourceClient) Init() {
 
 // pullConfigurationsFromServer pulls all the configuration from Config-Server based on dimesionInfo
 func (memDis *MemDiscovery) pullConfigurationsFromServer(dimensionInfo string) (map[string]interface{}, error) {
-
-	var count int
 	type GetConfigAPI map[string]map[string]interface{}
 	config := make(map[string]interface{})
-
-	configServerHost, err := memDis.GetConfigServer()
+	configAPIRes := make(GetConfigAPI)
+	parsedDimensionInfo := strings.Replace(dimensionInfo, "#", "%23", -1)
+	restApi := ConfigPath + "?" + dimensionsInfo + "=" + parsedDimensionInfo
+	err := memDiscovery.call(http.MethodGet, restApi, nil, nil, &configAPIRes)
 	if err != nil {
-		err := memDis.RefreshMembers()
-		if err != nil {
-			lager.Logger.Error("error in refreshing config client members", err)
-			return nil, errors.New("error in refreshing config client members")
+		lager.Logger.Error("Pull config failed", err)
+		return nil, err
+	}
+	for _, v := range configAPIRes {
+		for key, value := range v {
+			config[key] = value
 		}
-		memDis.Shuffle()
-		configServerHost, _ = memDis.GetConfigServer()
 	}
 
-	confgCenterIP := len(configServerHost)
-	for _, server := range configServerHost {
-		configAPIRes := make(GetConfigAPI)
-		parsedDimensionInfo := strings.Replace(dimensionInfo, "#", "%23", -1)
-		resp, err := memDis.HTTPDo("GET", server+ConfigPath+"?"+dimensionsInfo+"="+parsedDimensionInfo, nil, nil)
-		if err != nil {
-			count++
-			if confgCenterIP <= count {
-				return nil, err
-			}
-			lager.Logger.Error("config source item request failed with error", err)
-			continue
-		}
-		var body []byte
-		body, err = ioutil.ReadAll(resp.Body)
-		contentType := resp.Header.Get("Content-Type")
-		if len(contentType) > 0 && (len(defaultContentType) > 0 && !strings.Contains(contentType, defaultContentType)) {
-			lager.Logger.Error("config source item request failed with error", errors.New("content type mis match"))
-			continue
-		}
-		error := serializers.Decode(defaultContentType, body, &configAPIRes)
-		if error != nil {
-			lager.Logger.Error("config source item request failed with error", errors.New("error in decoding the request:"+error.Error()))
-			lager.Logger.Debugf("config source item request failed with error", error, "with body", body)
-			continue
-		}
-		for _, v := range configAPIRes {
-			for key, value := range v {
-				config[key] = value
-			}
-		}
-	}
 	return config, nil
 }
 
@@ -491,47 +402,13 @@ func (memDis *MemDiscovery) pullConfigurationsFromServer(dimensionInfo string) (
 func (cclient *ConfigSourceClient) PullConfigsByDI(dimensionInfo, diInfo string) (map[string]map[string]interface{}, error) {
 	// update dimensionInfo value
 	type GetConfigAPI map[string]map[string]interface{}
-
-	var (
-		count int
-	)
 	configAPIRes := make(GetConfigAPI)
-	configServerHost, err := cclient.memDiscovery.GetConfigServer()
+	parsedDimensionInfo := strings.Replace(diInfo, "#", "%23", -1)
+	restApi := ConfigPath + "?" + dimensionsInfo + "=" + parsedDimensionInfo
+	err := cclient.memDiscovery.call(http.MethodGet, restApi, nil, nil, &configAPIRes)
 	if err != nil {
-		err := cclient.memDiscovery.RefreshMembers()
-		if err != nil {
-			lager.Logger.Error("error in refreshing config client members", err)
-			return nil, errors.New("error in refreshing config client members")
-		}
-		cclient.memDiscovery.Shuffle()
-		configServerHost, _ = cclient.memDiscovery.GetConfigServer()
-	}
-
-	confgCenterIP := len(configServerHost)
-	for _, server := range configServerHost {
-		parsedDimensionInfo := strings.Replace(diInfo, "#", "%23", -1)
-		resp, err := cclient.memDiscovery.HTTPDo("GET", server+ConfigPath+"?"+dimensionsInfo+"="+parsedDimensionInfo, nil, nil)
-		if err != nil {
-			count++
-			if confgCenterIP <= count {
-				return nil, err
-			}
-			lager.Logger.Error("config source item request failed with error", err)
-			continue
-		}
-		var body []byte
-		body, err = ioutil.ReadAll(resp.Body)
-		contentType := resp.Header.Get("Content-Type")
-		if len(contentType) > 0 && (len(defaultContentType) > 0 && !strings.Contains(contentType, defaultContentType)) {
-			lager.Logger.Error("config source item request failed with error", errors.New("content type mis match"))
-			continue
-		}
-		error := serializers.Decode(defaultContentType, body, &configAPIRes)
-		if error != nil {
-			lager.Logger.Error("config source item request failed with error", errors.New("error in decoding the request:"+error.Error()))
-			lager.Logger.Debugf("config source item request failed with error", error, "with body", body)
-			continue
-		}
+		lager.Logger.Error("Pull config by DI failed", err)
+		return nil, err
 	}
 	return configAPIRes, nil
 }
@@ -545,4 +422,8 @@ func InitConfigCenterNew(endpoint, serviceName, app, env, version string, tlsCon
 	configSourceClient := &ConfigSourceClient{}
 	configSourceClient.Init()
 	return configSourceClient
+}
+
+func isStatusSuccess(i int) bool {
+	return i >= http.StatusOK && i < http.StatusBadRequest
 }
