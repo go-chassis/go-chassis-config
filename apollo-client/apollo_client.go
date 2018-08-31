@@ -6,8 +6,8 @@ import (
 	"github.com/go-chassis/go-cc-client"
 	"github.com/go-chassis/go-cc-client/serializers"
 	"github.com/go-chassis/go-chassis/core/config"
-	"github.com/go-chassis/go-chassis/core/lager"
 	"github.com/go-chassis/go-chassis/pkg/httpclient"
+	"github.com/go-mesh/openlogging"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -37,14 +37,14 @@ func (apolloClient *ApolloClient) NewApolloClient() {
 	var err error
 	apolloClient.client, err = httpclient.GetURLClient(options)
 	if err != nil {
-		lager.Logger.Error("ApolloClient Initialization Failed", err)
+		openlogging.GetLogger().Error("ApolloClient Initialization Failed: " + err.Error())
 	}
-	lager.Logger.Debugf("ApolloClient Initialized successfully")
+	openlogging.GetLogger().Debugf("ApolloClient Initialized successfully")
 }
 
 // Init will initialize the needed parameters
 func (apolloClient *ApolloClient) Init() {
-	lager.Logger.Debugf("ApolloClient Initialized successfully")
+	openlogging.GetLogger().Debugf("ApolloClient Initialized successfully")
 }
 
 // HTTPDo Use http-client package for rest communication
@@ -68,11 +68,11 @@ func (apolloClient *ApolloClient) PullConfigs(serviceName, version, app, env str
 	// Make a Http Request to Apollo Server
 	resp, err := apolloClient.HTTPDo("GET", pullConfigurationURL, nil, nil)
 	if err != nil {
-		lager.Logger.Error("Error in Querying the Response from Apollo", err)
+		openlogging.GetLogger().Error("Error in Querying the Response from Apollo: " + err.Error())
 		return nil, err
 	}
 	if resp.StatusCode != 200 {
-		lager.Logger.Error("Bad Response : ", errors.New("Response from Apollo Server "+resp.Status))
+		openlogging.GetLogger().Error("Bad Response : " + "Response from Apollo Server " + resp.Status)
 		return nil, errors.New("Bad Response from Apollo Server " + resp.Status)
 	}
 	/*
@@ -94,11 +94,11 @@ func (apolloClient *ApolloClient) PullConfigs(serviceName, version, app, env str
 	var configurations map[string]interface{}
 	error := serializers.Decode(defaultContentType, body, &configurations)
 	if error != nil {
-		lager.Logger.Error("Error in Unmarshalling the Response from Apollo", error)
+		openlogging.GetLogger().Error("Error in Unmarshalling the Response from Apollo: " + error.Error())
 		return nil, error
 	}
 
-	lager.Logger.Debugf("The Marshaled response of the body is : ", configurations["configurations"])
+	openlogging.GetLogger().Debugf("The Marshaled response of the body is : ", configurations["configurations"])
 
 	var configValues map[string]interface{}
 	configValues = configurations["configurations"].(map[string]interface{})
@@ -122,11 +122,11 @@ func (apolloClient *ApolloClient) PullConfig(serviceName, version, app, env, key
 	// Make a Http Request to Apollo Server
 	resp, err := apolloClient.HTTPDo("GET", pullConfigurationURL, nil, nil)
 	if err != nil {
-		lager.Logger.Error("Error in Querying the Response from Apollo", err)
+		openlogging.GetLogger().Error("Error in Querying the Response from Apollo: " + err.Error())
 		return nil, err
 	}
 	if resp.StatusCode != 200 {
-		lager.Logger.Error("Bad Response : ", errors.New("Response from Apollo Server "+resp.Status))
+		openlogging.GetLogger().Error("Bad Response : " + "Response from Apollo Server " + resp.Status)
 		return nil, errors.New("Bad Response from Apollo Server " + resp.Status)
 	}
 
@@ -136,7 +136,7 @@ func (apolloClient *ApolloClient) PullConfig(serviceName, version, app, env, key
 	var configurations map[string]interface{}
 	error := serializers.Decode(defaultContentType, body, &configurations)
 	if error != nil {
-		lager.Logger.Error("Error in Unmarshalling the Response from Apollo", error)
+		openlogging.GetLogger().Error("Error in Unmarshalling the Response from Apollo: " + err.Error())
 		return nil, err
 	}
 
@@ -153,10 +153,10 @@ func (apolloClient *ApolloClient) PullConfig(serviceName, version, app, env, key
 	}
 
 	if !isFound {
-		lager.Logger.Error("Error in fetching the configurations for particular value", errors.New("No Key found : "+key))
+		openlogging.GetLogger().Error("Error in fetching the configurations for particular value" + "No Key found : " + key)
 		return nil, errors.New("No Key found : " + key)
 	}
-	lager.Logger.Debugf("The Key Value of : ", configurationsValue)
+	openlogging.GetLogger().Debugf("The Key Value of : ", configurationsValue)
 	return configurationsValue, nil
 }
 

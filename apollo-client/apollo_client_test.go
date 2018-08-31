@@ -2,16 +2,27 @@ package apolloclient
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/go-chassis/go-chassis/core/config"
 	"github.com/go-chassis/go-chassis/core/config/model"
-	"github.com/go-chassis/go-chassis/core/lager"
+	"github.com/go-chassis/paas-lager"
+	"github.com/go-mesh/openlogging"
 	"github.com/stretchr/testify/assert"
-	"log"
 	"net/http"
 	"os"
 	"testing"
 )
 
+func init() {
+	log.Init(log.Config{
+		LoggerLevel:   "DEBUG",
+		EnableRsyslog: false,
+		LogFormatText: true,
+		Writers:       []string{"stdout"},
+	})
+	l := log.NewLogger("test")
+	openlogging.SetLogger(l)
+}
 func TestApolloClient_NewApolloClient(t *testing.T) {
 
 }
@@ -22,7 +33,6 @@ func TestApolloClient_HTTPDo(t *testing.T) {
 	}
 	helper := startHttpServer(":9876", "/test", keepAlive)
 
-	lager.Initialize("", "INFO", "", "size", true, 1, 10, 7)
 	gopath := os.Getenv("GOPATH")
 	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
 	config.Init()
@@ -61,7 +71,6 @@ func TestApolloClient_PullConfig(t *testing.T) {
 
 	helper := startHttpServer(":9875", "/configs/TestApp/Default/application", configBody)
 
-	lager.Initialize("", "INFO", "", "size", true, 1, 10, 7)
 	gopath := os.Getenv("GOPATH")
 	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
 	config.Init()
@@ -109,7 +118,6 @@ func TestApolloClient_PullConfigs(t *testing.T) {
 
 	helper := startHttpServer(":9874", "/configs/SampleApp/Default/application", configBody)
 
-	lager.Initialize("", "INFO", "", "size", true, 1, 10, 7)
 	gopath := os.Getenv("GOPATH")
 	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
 	config.Init()
@@ -148,7 +156,7 @@ func startHttpServer(port string, pattern string, responseBody map[string]interf
 
 	go func() {
 		if err := helper.ListenAndServe(); err != nil {
-			log.Printf("Httpserver: ListenAndServe() error: %s", err)
+			fmt.Printf("Httpserver: ListenAndServe() error: %s", err)
 		}
 	}()
 	return helper
