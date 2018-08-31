@@ -28,10 +28,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/go-chassis/go-archaius/lager"
 	"github.com/go-chassis/go-cc-client"
 	"github.com/go-chassis/go-cc-client/serializers"
 	"github.com/go-chassis/go-chassis/pkg/httpclient"
+	"github.com/go-mesh/openlogging"
 )
 
 var (
@@ -197,7 +197,7 @@ func (memDis *MemDiscovery) ConfigurationInit(initConfigServer []string) error {
 	if memDis.ConfigServerAddresses == nil {
 		if initConfigServer == nil && len(initConfigServer) == 0 {
 			err := errors.New(emptyConfigServerConfig)
-			lager.Logger.Error(emptyConfigServerConfig, err)
+			openlogging.GetLogger().Error(emptyConfigServerConfig)
 			return err
 		}
 
@@ -217,20 +217,20 @@ func (memDis *MemDiscovery) ConfigurationInit(initConfigServer []string) error {
 func (memDis *MemDiscovery) GetConfigServer() ([]string, error) {
 	if memDis.IsInit == false {
 		err := errors.New(packageInitError)
-		lager.Logger.Error(packageInitError, err)
+		openlogging.GetLogger().Error(packageInitError)
 		return nil, err
 	}
 
 	if len(memDis.ConfigServerAddresses) == 0 {
 		err := errors.New(emptyConfigServerMembers)
-		lager.Logger.Error(emptyConfigServerMembers, err)
+		openlogging.GetLogger().Error(emptyConfigServerMembers)
 		return nil, err
 	}
 
 	if autoDiscoverable {
 		err := memDis.RefreshMembers()
 		if err != nil {
-			lager.Logger.Error("refresh member is failed", err)
+			openlogging.GetLogger().Error("refresh member is failed: " + err.Error())
 			return nil, err
 		}
 	} else {
@@ -247,13 +247,13 @@ func (memDis *MemDiscovery) GetConfigServer() ([]string, error) {
 
 	err := memDis.Shuffle()
 	if err != nil {
-		lager.Logger.Error("member shuffle is failed", err)
+		openlogging.GetLogger().Error("member shuffle is failed: " + err.Error())
 		return nil, err
 	}
 
 	memDis.RLock()
 	defer memDis.RUnlock()
-	lager.Logger.Debugf("member server return %s", memDis.ConfigServerAddresses[0])
+	openlogging.GetLogger().Debugf("member server return %s", memDis.ConfigServerAddresses[0])
 	return memDis.ConfigServerAddresses, nil
 }
 
@@ -265,36 +265,37 @@ func (memDis *MemDiscovery) RefreshMembers() error {
 func (memDis *MemDiscovery) call(method string, api string, headers http.Header, body []byte, s interface{}) error {
 	hosts, err := memDis.GetConfigServer()
 	if err != nil {
-		lager.Logger.Error("Get config server addr failed", err)
+		openlogging.GetLogger().Error("Get config server addr failed:" + err.Error())
 	}
 	index := rand.Int() % len(memDis.ConfigServerAddresses)
 	host := hosts[index]
 	rawUri := host + api
-	errMsgPrefix := fmt.Sprintf("Call %s failed", rawUri)
+	errMsgPrefix := fmt.Sprintf("Call %s failed: ", rawUri)
 	resp, err := memDis.HTTPDo(method, rawUri, headers, body)
 	if err != nil {
-		lager.Logger.Error(errMsgPrefix, err)
+		openlogging.GetLogger().Error(errMsgPrefix + err.Error())
 		return err
+
 	}
 	body, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		lager.Logger.Error(errMsgPrefix, err)
+		openlogging.GetLogger().Error(errMsgPrefix + err.Error())
 		return err
 	}
 	if !isStatusSuccess(resp.StatusCode) {
 		err = fmt.Errorf("statusCode: %d, resp body: %s", resp.StatusCode, body)
-		lager.Logger.Error(errMsgPrefix, err)
+		openlogging.GetLogger().Error(errMsgPrefix + err.Error())
 		return err
 	}
 	contentType := resp.Header.Get("Content-Type")
 	if len(contentType) > 0 && (len(defaultContentType) > 0 && !strings.Contains(contentType, defaultContentType)) {
 		err = fmt.Errorf("content type not %s", defaultContentType)
-		lager.Logger.Error(errMsgPrefix, err)
+		openlogging.GetLogger().Error(errMsgPrefix + err.Error())
 		return err
 	}
 	err = serializers.Decode(defaultContentType, body, s)
 	if err != nil {
-		lager.Logger.Error("Decode failed", err)
+		openlogging.GetLogger().Error("Decode failed:" + err.Error())
 		return err
 	}
 	return nil
@@ -318,7 +319,7 @@ func GetDefaultHeaders(tenantName string) http.Header {
 func (memDis *MemDiscovery) Shuffle() error {
 	if memDis.ConfigServerAddresses == nil || len(memDis.ConfigServerAddresses) == 0 {
 		err := errors.New(emptyConfigServerConfig)
-		lager.Logger.Error(emptyConfigServerConfig, err)
+		openlogging.GetLogger().Error(emptyConfigServerConfig)
 		return err
 	}
 
@@ -326,21 +327,22 @@ func (memDis *MemDiscovery) Shuffle() error {
 
 	memDis.Lock()
 	defer memDis.Unlock()
-	lager.Logger.Debugf("Before Suffled member %s ", memDis.ConfigServerAddresses)
+	openlogging.GetLogger().Debugf("Before Suffled member %s ", memDis.ConfigServerAddresses)
 	for i, v := range perm {
-		lager.Logger.Debugf("shuffler %d %d", i, v)
+		openlogging.GetLogger().Debugf("shuffler %d %d", i, v)
 		tmp := memDis.ConfigServerAddresses[v]
 		memDis.ConfigServerAddresses[v] = memDis.ConfigServerAddresses[i]
 		memDis.ConfigServerAddresses[i] = tmp
 	}
 
-	lager.Logger.Debugf("Suffled member %s", memDis.ConfigServerAddresses)
+	openlogging.GetLogger().Debugf("Suffled member %s", memDis.ConfigServerAddresses)
 	return nil
 }
 
 //GetWorkingConfigCenterIP is a method which gets working configuration center IP
 func (memDis *MemDiscovery) GetWorkingConfigCenterIP(entryPoint []string) ([]string, error) {
 	return entryPoint, nil
+
 }
 
 // PullConfigs is the implementation of ConfigClient to pull all the configurations from Config-Server
@@ -365,7 +367,7 @@ func (cclient *ConfigSourceClient) PullConfig(serviceName, version, app, env, ke
 	}
 	configurationsValue, ok := configurations[key]
 	if !ok {
-		lager.Logger.Error("Error in fetching the configurations for particular value", errors.New("No Key found : "+key))
+		openlogging.GetLogger().Error("Error in fetching the configurations for particular value,No Key found : " + key)
 	}
 
 	return configurationsValue, nil
@@ -386,12 +388,13 @@ func (memDis *MemDiscovery) pullConfigurationsFromServer(dimensionInfo string) (
 	restApi := ConfigPath + "?" + dimensionsInfo + "=" + parsedDimensionInfo
 	err := memDiscovery.call(http.MethodGet, restApi, nil, nil, &configAPIRes)
 	if err != nil {
-		lager.Logger.Error("Pull config failed", err)
+		openlogging.GetLogger().Error("Pull config failed:" + err.Error())
 		return nil, err
 	}
 	for _, v := range configAPIRes {
 		for key, value := range v {
 			config[key] = value
+
 		}
 	}
 
@@ -407,8 +410,9 @@ func (cclient *ConfigSourceClient) PullConfigsByDI(dimensionInfo, diInfo string)
 	restApi := ConfigPath + "?" + dimensionsInfo + "=" + parsedDimensionInfo
 	err := cclient.memDiscovery.call(http.MethodGet, restApi, nil, nil, &configAPIRes)
 	if err != nil {
-		lager.Logger.Error("Pull config by DI failed", err)
+		openlogging.GetLogger().Error("Pull config by DI failed:" + err.Error())
 		return nil, err
+
 	}
 	return configAPIRes, nil
 }

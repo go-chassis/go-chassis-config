@@ -7,14 +7,26 @@ import (
 	"testing"
 
 	"encoding/json"
+	"fmt"
 	"github.com/go-chassis/go-chassis/core/config"
 	"github.com/go-chassis/go-chassis/core/config/model"
-	"github.com/go-chassis/go-chassis/core/lager"
 	"github.com/go-chassis/go-chassis/pkg/httpclient"
+	"github.com/go-chassis/paas-lager"
+	"github.com/go-mesh/openlogging"
 	"github.com/stretchr/testify/assert"
-	"log"
 	"net/http"
 )
+
+func init() {
+	log.Init(log.Config{
+		LoggerLevel:   "DEBUG",
+		EnableRsyslog: false,
+		LogFormatText: true,
+		Writers:       []string{"stdout"},
+	})
+	l := log.NewLogger("test")
+	openlogging.SetLogger(l)
+}
 
 type TestingSource struct {
 }
@@ -207,7 +219,7 @@ func startHttpServer(port string, pattern string, responseBody map[string]interf
 
 	go func() {
 		if err := helper.ListenAndServe(); err != nil {
-			log.Printf("Httpserver: ListenAndServe() error: %s", err)
+			fmt.Printf("Httpserver: ListenAndServe() error: %s", err)
 		}
 	}()
 	return helper
@@ -219,7 +231,6 @@ func TestMemDiscovery_HTTPDo(t *testing.T) {
 	}
 	helper := startHttpServer(":9876", "/test", keepAlive)
 
-	lager.Initialize("", "INFO", "", "size", true, 1, 10, 7)
 	gopath := os.Getenv("GOPATH")
 	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
 	config.Init()
