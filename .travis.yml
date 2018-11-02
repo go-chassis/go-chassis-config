@@ -25,10 +25,6 @@ jobs:
       script:
         - go get -u github.com/jgautheron/goconst/cmd/goconst
         - bash -x scripts/travis/goConstChecker.sh
-    - stage: GoLint Checker
-      script:
-        - mkdir -p $GOPATH/src/golang.org/x && git clone https://github.com/golang/lint.git $GOPATH/src/golang.org/x/lint && go get golang.org/x/lint/golint
-        - bash -x scripts/travis/goLintChecker.sh
     - stage: GoCyclo Checker
       script:
         - go get github.com/fzipp/gocyclo

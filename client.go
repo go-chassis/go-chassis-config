@@ -2,6 +2,9 @@ package client
 
 import (
 	"crypto/tls"
+	"errors"
+	"fmt"
+	"github.com/go-mesh/openlogging"
 	"log"
 )
 
@@ -29,15 +32,16 @@ type ConfigClient interface {
 }
 
 //Enable enable config server client
-func Enable(clientType string) {
+func Enable(clientType string) error {
 	plugins := configClientPlugins[clientType]
 	if plugins == nil {
-		panic("Default Plugin not found")
+		return errors.New(fmt.Sprintf("plugin [%s] not found", clientType))
 	}
 	var tlsConfig *tls.Config
 	DefaultClient = plugins("", "", "", "", "", tlsConfig)
 
 	//Initializing the Client
 	DefaultClient.Init()
-	log.Printf("%s Plugin is enabled", clientType)
+	openlogging.GetLogger().Infof("%s Plugin is enabled", clientType)
+	return nil
 }
