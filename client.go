@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-mesh/openlogging"
-	"log"
 )
 
 var configClientPlugins = make(map[string]func(endpoint, serviceName, app, env, version string, tlsConfig *tls.Config) ConfigClient)
@@ -16,7 +15,7 @@ var DefaultClient ConfigClient
 //InstallConfigClientPlugin install a config client plugin
 func InstallConfigClientPlugin(name string, f func(endpoint, serviceName, app, env, version string, tlsConfig *tls.Config) ConfigClient) {
 	configClientPlugins[name] = f
-	log.Printf("Installed %s Plugin", name)
+	openlogging.GetLogger().Infof("Installed %s Plugin", name)
 }
 
 //ConfigClient is the interface of config server client, it has basic func to interact with config server
