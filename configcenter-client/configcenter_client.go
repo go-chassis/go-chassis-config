@@ -120,6 +120,7 @@ func NewConfiCenterInit(tlsConfig *tls.Config, tenantName string, enableSSL bool
 		memDiscovery.TLSConfig = tlsConfig
 		memDiscovery.TenantName = tenantName
 		memDiscovery.EnableSSL = enableSSL
+
 		var apiVersion string
 		apiVersionConfig = apiPathVersion
 		autoDiscoverable = autoDiscovery
@@ -417,6 +418,57 @@ func (cclient *ConfigSourceClient) PullConfigsByDI(dimensionInfo, diInfo string)
 	return configAPIRes, nil
 }
 
+// PushConfigs push configs to ConfigSource cc , success will return { "Result": "Success" }
+func (cclient *ConfigSourceClient) PushConfigs(items map[string]interface{}, dimensionInfo string) (map[string]interface{}, error) {
+	if len(items) == 0 {
+		em := "data is empty , which data need to send cc"
+		openlogging.GetLogger().Error(em)
+		return nil, errors.New(em)
+	}
+	type CreateConfigApi struct {
+		DimensionInfo string                 `json:"dimensionsInfo"`
+		Items         map[string]interface{} `json:"items"`
+	}
+	configApi := CreateConfigApi{
+		DimensionInfo: dimensionInfo,
+		Items:         items,
+	}
+
+	return addDeleteConfig(cclient, configApi, http.MethodPost)
+}
+
+// DeleteConfigsByKeys
+func (cclient *ConfigSourceClient) DeleteConfigsByKeys(keys []string, dimensionInfo string) (map[string]interface{}, error) {
+	if len(keys) == 0 {
+		em := "not key need to delete for cc, please check keys"
+		openlogging.GetLogger().Error(em)
+		return nil, errors.New(em)
+	}
+	type DeleteConfigApi struct {
+		DimensionInfo string   `json:"dimensionsInfo"`
+		Keys          []string `json:"keys"`
+	}
+	configApi := DeleteConfigApi{
+		DimensionInfo: dimensionInfo,
+		Keys:          keys,
+	}
+
+	return addDeleteConfig(cclient, configApi, http.MethodDelete)
+}
+func addDeleteConfig(cclient *ConfigSourceClient, data interface{}, method string) (map[string]interface{}, error) {
+	type ConfigAPI map[string]interface{}
+	configAPIS := make(ConfigAPI)
+	body, err := serializers.Encode(serializers.JsonEncoder, data)
+	if err != nil {
+		openlogging.GetLogger().Errorf("serializer data failed , err :", err.Error())
+		return nil, err
+	}
+	err = cclient.memDiscovery.call(method, ConfigPath, nil, body, &configAPIS)
+	if err != nil {
+		return nil, err
+	}
+	return configAPIS, nil
+}
 func init() {
 	client.InstallConfigClientPlugin(Name, InitConfigCenterNew)
 }
