@@ -3,14 +3,15 @@ package apolloclient
 import (
 	"crypto/tls"
 	"errors"
+	"io/ioutil"
+	"net/http"
+	"strings"
+
 	"github.com/go-chassis/go-cc-client"
 	"github.com/go-chassis/go-cc-client/serializers"
 	"github.com/go-chassis/go-chassis/core/config"
 	"github.com/go-chassis/go-chassis/pkg/httpclient"
 	"github.com/go-mesh/openlogging"
-	"io/ioutil"
-	"net/http"
-	"strings"
 )
 
 // ApolloClient contains the implementation of ConfigClient
@@ -173,6 +174,16 @@ func composeURL() string {
 func (apolloClient *ApolloClient) PullConfigsByDI(dimensionInfo, diInfo string) (map[string]map[string]interface{}, error) {
 	// TODO Return the configurations for customized Projects in Apollo Configs
 	return nil, nil
+}
+
+// PushConfigs   not implemented
+func (apolloClient *ApolloClient) PushConfigs(data map[string]interface{}, dimensionInfo string) (map[string]interface{}, error) {
+	return map[string]interface{}{"Result": "not implemented"}, nil
+}
+
+// DeleteConfigsByKeys not implemented
+func (apolloClient *ApolloClient) DeleteConfigsByKeys(keys []string, dimensionInfo string) (map[string]interface{}, error) {
+	return map[string]interface{}{"Result": "not implemented"}, nil
 }
 
 //InitConfigApollo initialize the Apollo Client

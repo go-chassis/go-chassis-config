@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+
 	"github.com/go-mesh/openlogging"
 )
 
@@ -28,6 +29,10 @@ type ConfigClient interface {
 	PullConfig(serviceName, version, app, env, key, contentType string) (interface{}, error)
 	//PullConfigsByDI pulls the configurations with customized DimensionInfo/Project
 	PullConfigsByDI(dimensionInfo, diInfo string) (map[string]map[string]interface{}, error)
+	// PushConfigs push config to cc
+	PushConfigs(data map[string]interface{}, dimensionInfo string) (map[string]interface{}, error)
+	// DeleteConfigsByKeys delete config for cc by keys
+	DeleteConfigsByKeys(keys []string, dimensionInfo string) (map[string]interface{}, error)
 }
 
 //Enable enable config server client

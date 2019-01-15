@@ -8,13 +8,14 @@ import (
 
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/go-chassis/go-chassis/core/config"
 	"github.com/go-chassis/go-chassis/core/config/model"
 	"github.com/go-chassis/go-chassis/pkg/httpclient"
 	"github.com/go-chassis/paas-lager"
 	"github.com/go-mesh/openlogging"
 	"github.com/stretchr/testify/assert"
-	"net/http"
 )
 
 func init() {
@@ -56,16 +57,12 @@ func TestShuffle(t *testing.T) {
 	gopath := os.Getenv("GOPATH")
 	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
 	config.Init()
-
 	memDiscovery := NewConfiCenterInit(nil, "default", false)
-
 	testSource := &TestingSource{}
 	configCenters := testSource.GetConfigCenters()
 	err := memDiscovery.ConfigurationInit(configCenters)
 	assert.NoError(t,err)
-
 	_, er := memDiscovery.GetConfigServer()
-
 	assert.Error(t, er)
 }*/
 
@@ -81,7 +78,6 @@ func TestRefreshMembersConfigAddNil(t *testing.T) {
 /*func TestInit(t *testing.T) {
 	t.Log("Testing ConfigurationInit function with errors")
 	memDiscovery := NewConfiCenterInit(nil, "default", false)
-
 	//testSource := &TestingSource{}
 	//configCenters := testSource.GetConfigCenters()
 	err := memDiscovery.ConfigurationInit(nil)
@@ -91,7 +87,6 @@ func TestRefreshMembersConfigAddNil(t *testing.T) {
 /*func TestInitConfig(t *testing.T) {
 	t.Log("Testing ConfigurationInit function without errors")
 	memDiscovery := NewConfiCenterInit(nil, "default", false)
-
 	testSource := &TestingSource{}
 	configCenters := testSource.GetConfigCenters()
 	err := memDiscovery.ConfigurationInit(configCenters)
@@ -109,9 +104,7 @@ func TestRefreshMembersConfigAddNil(t *testing.T) {
 	//configCenters := testSource.GetConfigCenters()
 	//err := memDiscovery.ConfigurationInit(configCenters)
 	//assert.NoError(t,err)
-
 	_, er := memDiscovery.GetConfigServer()
-
 	assert.NoError(t, er)
 }*/
 
@@ -120,15 +113,12 @@ func TestRefreshMembersConfigAddNil(t *testing.T) {
 	gopath := os.Getenv("GOPATH")
 	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
 	config.Init()
-
 	memDiscovery := NewConfiCenterInit(nil, "default", false)
 	testSource := &TestingSource{}
 	configCenters := testSource.GetConfigCenters()
 	err := memDiscovery.ConfigurationInit(configCenters)
 	assert.NoError(t, err)
-
 	_, er := memDiscovery.GetConfigServer()
-
 	assert.NoError(t, er)
 }*/
 
@@ -141,13 +131,10 @@ func TestRefreshMembersConfigAddNil(t *testing.T) {
 	memDiscovery := NewConfiCenterInit(nil, "default", false)
 	testSource := &TestingSource{}
 	configCenters := testSource.GetConfigCenters()
-
 	err := memDiscovery.ConfigurationInit(configCenters)
 	assert.NoError(t, err)
-
 	er := memDiscovery.RefreshMembers()
 	assert.NoError(t, er)
-
 }*/
 func TestGetDefaultHeadersArrayHeader(t *testing.T) {
 	t.Log("Testing RefreshMembers without error after initializing configuration")
@@ -164,7 +151,6 @@ func TestGetDefaultHeadersArrayHeader(t *testing.T) {
 		h1 := http.Header{"abc": sl, "def": sl}
 		return h1
 	}
-
 	auth.GenAuthHeaders = func1*/
 
 	_ = GetDefaultHeaders("tenantName")
@@ -175,16 +161,13 @@ func TestGetDefaultHeadersArrayHeader(t *testing.T) {
 	gopath := os.Getenv("GOPATH")
 	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
 	config.Init()
-
 	memDiscovery := NewConfiCenterInit(nil, "default", false)
 	testSource := &TestingSource{}
 	configCenters := testSource.GetConfigCenters()
 	err := memDiscovery.ConfigurationInit(configCenters)
 	assert.NoError(t, err)
 	var endpoint = []string{"127.0.0.1", "5.6.7.8"}
-
 	_, er := memDiscovery.GetWorkingConfigCenterIP(endpoint)
-
 	assert.NoError(t, er)
 }*/
 
