@@ -1,7 +1,6 @@
-package apolloclient
+package apollo
 
 import (
-	"crypto/tls"
 	"errors"
 	"io/ioutil"
 	"net/http"
@@ -9,15 +8,18 @@ import (
 
 	"github.com/go-chassis/go-cc-client"
 	"github.com/go-chassis/go-cc-client/serializers"
-	"github.com/go-chassis/go-chassis/core/config"
 	"github.com/go-chassis/go-chassis/pkg/httpclient"
 	"github.com/go-mesh/openlogging"
 )
 
-// ApolloClient contains the implementation of ConfigClient
-type ApolloClient struct {
-	name   string
-	client *httpclient.URLClient
+// Client contains the implementation of ConfigClient
+type Client struct {
+	name        string
+	client      *httpclient.URLClient
+	serviceName string
+	cluster     string
+	namespace   string
+	URI         string
 }
 
 const (
@@ -28,7 +30,7 @@ const (
 )
 
 // NewApolloClient init's the necessary objects needed for seamless communication to apollo Server
-func (apolloClient *ApolloClient) NewApolloClient() {
+func (apolloClient *Client) NewApolloClient() {
 	options := &httpclient.URLClientOption{
 		SSLEnabled: false,
 		TLSConfig:  nil, //TODO Analyse the TLS configuration of Apollo Server
@@ -38,23 +40,18 @@ func (apolloClient *ApolloClient) NewApolloClient() {
 	var err error
 	apolloClient.client, err = httpclient.GetURLClient(options)
 	if err != nil {
-		openlogging.GetLogger().Error("ApolloClient Initialization Failed: " + err.Error())
+		openlogging.GetLogger().Error("Client Initialization Failed: " + err.Error())
 	}
-	openlogging.GetLogger().Debugf("ApolloClient Initialized successfully")
-}
-
-// Init will initialize the needed parameters
-func (apolloClient *ApolloClient) Init() {
-	openlogging.GetLogger().Debugf("ApolloClient Initialized successfully")
+	openlogging.GetLogger().Debugf("Client Initialized successfully")
 }
 
 // HTTPDo Use http-client package for rest communication
-func (apolloClient *ApolloClient) HTTPDo(method string, rawURL string, headers http.Header, body []byte) (resp *http.Response, err error) {
+func (apolloClient *Client) HTTPDo(method string, rawURL string, headers http.Header, body []byte) (resp *http.Response, err error) {
 	return apolloClient.client.HTTPDo(method, rawURL, headers, body)
 }
 
 // PullConfigs is the implementation of ConfigClient and pulls all the configuration for a given serviceName
-func (apolloClient *ApolloClient) PullConfigs(serviceName, version, app, env string) (map[string]interface{}, error) {
+func (apolloClient *Client) PullConfigs(serviceName, version, app, env string) (map[string]interface{}, error) {
 	/*
 		1. Compose the URL
 		2. Make a Http Request to Apollo Server
@@ -64,7 +61,7 @@ func (apolloClient *ApolloClient) PullConfigs(serviceName, version, app, env str
 	*/
 
 	// Compose the URL
-	pullConfigurationURL := composeURL()
+	pullConfigurationURL := apolloClient.composeURL()
 
 	// Make a Http Request to Apollo Server
 	resp, err := apolloClient.HTTPDo("GET", pullConfigurationURL, nil, nil)
@@ -107,7 +104,7 @@ func (apolloClient *ApolloClient) PullConfigs(serviceName, version, app, env str
 }
 
 // PullConfig is the implementation of the ConfigClient
-func (apolloClient *ApolloClient) PullConfig(serviceName, version, app, env, key, contentType string) (interface{}, error) {
+func (apolloClient *Client) PullConfig(serviceName, version, app, env, key, contentType string) (interface{}, error) {
 	/*
 		1. Compose the URL
 		2. Make a Http Request to Apollo Server
@@ -118,7 +115,7 @@ func (apolloClient *ApolloClient) PullConfig(serviceName, version, app, env, key
 	*/
 
 	// Compose the URL
-	pullConfigurationURL := composeURL()
+	pullConfigurationURL := apolloClient.composeURL()
 
 	// Make a Http Request to Apollo Server
 	resp, err := apolloClient.HTTPDo("GET", pullConfigurationURL, nil, nil)
@@ -162,37 +159,42 @@ func (apolloClient *ApolloClient) PullConfig(serviceName, version, app, env, key
 }
 
 // composeURL composes the URL based on the configurations given in chassis.yaml
-func composeURL() string {
-	pullConfigurationURL := strings.Replace(apolloServerAPI, ":ServerURL", config.GlobalDefinition.Cse.Config.Client.ServerURI, 1)
-	pullConfigurationURL = strings.Replace(pullConfigurationURL, ":appID", config.GlobalDefinition.Cse.Config.Client.ApolloServiceName, 1)
-	pullConfigurationURL = strings.Replace(pullConfigurationURL, ":clusterName", config.GlobalDefinition.Cse.Config.Client.ClusterName, 1)
-	pullConfigurationURL = strings.Replace(pullConfigurationURL, ":nameSpace", config.GlobalDefinition.Cse.Config.Client.ApolloNameSpace, 1)
+func (apolloClient *Client) composeURL() string {
+	pullConfigurationURL := strings.Replace(apolloServerAPI, ":ServerURL", apolloClient.URI, 1)
+	pullConfigurationURL = strings.Replace(pullConfigurationURL, ":appID", apolloClient.serviceName, 1)
+	pullConfigurationURL = strings.Replace(pullConfigurationURL, ":clusterName", apolloClient.cluster, 1)
+	pullConfigurationURL = strings.Replace(pullConfigurationURL, ":nameSpace", apolloClient.namespace, 1)
 	return pullConfigurationURL
 }
 
 //PullConfigsByDI returns the configuration for additional Projects in Apollo
-func (apolloClient *ApolloClient) PullConfigsByDI(dimensionInfo, diInfo string) (map[string]map[string]interface{}, error) {
+func (apolloClient *Client) PullConfigsByDI(dimensionInfo, diInfo string) (map[string]map[string]interface{}, error) {
 	// TODO Return the configurations for customized Projects in Apollo Configs
 	return nil, nil
 }
 
 // PushConfigs   not implemented
-func (apolloClient *ApolloClient) PushConfigs(data map[string]interface{}, dimensionInfo string) (map[string]interface{}, error) {
+func (apolloClient *Client) PushConfigs(data map[string]interface{}, dimensionInfo string) (map[string]interface{}, error) {
 	return map[string]interface{}{"Result": "not implemented"}, nil
 }
 
 // DeleteConfigsByKeys not implemented
-func (apolloClient *ApolloClient) DeleteConfigsByKeys(keys []string, dimensionInfo string) (map[string]interface{}, error) {
+func (apolloClient *Client) DeleteConfigsByKeys(keys []string, dimensionInfo string) (map[string]interface{}, error) {
 	return map[string]interface{}{"Result": "not implemented"}, nil
 }
 
 //InitConfigApollo initialize the Apollo Client
-func InitConfigApollo(endpoint, serviceName, app, env, version string, tlsConfig *tls.Config) client.ConfigClient {
-	apolloClient := &ApolloClient{}
+func InitConfigApollo(options ccclient.Options) ccclient.ConfigClient {
+	apolloClient := &Client{
+		serviceName: options.ApolloServiceName,
+		cluster:     options.Cluster,
+		URI:         options.ServerURI,
+		namespace:   options.Namespace,
+	}
 	apolloClient.NewApolloClient()
 	return apolloClient
 }
 
 func init() {
-	client.InstallConfigClientPlugin(Name, InitConfigApollo)
+	ccclient.InstallConfigClientPlugin(Name, InitConfigApollo)
 }

@@ -1,4 +1,4 @@
-package apolloclient
+package apollo
 
 import (
 	"encoding/json"
@@ -38,7 +38,7 @@ func TestApolloClient_HTTPDo(t *testing.T) {
 	config.Init()
 	config.GlobalDefinition = &model.GlobalCfg{}
 
-	apolloClient := &ApolloClient{}
+	apolloClient := &Client{}
 	apolloClient.NewApolloClient()
 
 	// Test existing API 's
@@ -76,7 +76,7 @@ func TestApolloClient_PullConfig(t *testing.T) {
 	config.Init()
 	config.GlobalDefinition = &model.GlobalCfg{}
 
-	apolloClient := &ApolloClient{}
+	apolloClient := &Client{}
 	apolloClient.NewApolloClient()
 	config.GlobalDefinition.Cse.Config.Client.ServerURI = "http://127.0.0.1:9875"
 	config.GlobalDefinition.Cse.Config.Client.ApolloServiceName = "TestApp"
@@ -123,7 +123,7 @@ func TestApolloClient_PullConfigs(t *testing.T) {
 	config.Init()
 	config.GlobalDefinition = &model.GlobalCfg{}
 
-	apolloClient := &ApolloClient{}
+	apolloClient := &Client{}
 	apolloClient.NewApolloClient()
 	config.GlobalDefinition.Cse.Config.Client.ServerURI = "http://127.0.0.1:9874"
 	config.GlobalDefinition.Cse.Config.Client.ApolloServiceName = "SampleApp"

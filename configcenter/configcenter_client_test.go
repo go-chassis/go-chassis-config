@@ -1,4 +1,4 @@
-package configcenterclient
+package configcenter
 
 import (
 	"math/rand"
@@ -38,20 +38,6 @@ func (*TestingSource) GetConfigCenters() []string {
 	return configserver
 }
 
-func TestShuffle(t *testing.T) {
-	t.Log("Testing Shuffle function for errors")
-	gopath := os.Getenv("GOPATH")
-	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
-	config.Init()
-	config.GlobalDefinition = &model.GlobalCfg{}
-	config.GlobalDefinition.Cse.Config.Client.APIVersion.Version = "v2"
-	memDiscovery := NewConfiCenterInit(nil, "default", false, "v3", false, "")
-
-	er := memDiscovery.Shuffle()
-
-	assert.Error(t, er)
-}
-
 /*func TestGetConfigServerIsInitErr(t *testing.T) {
 	t.Log("Testing GetConfigServer function for errors")
 	gopath := os.Getenv("GOPATH")
@@ -65,15 +51,6 @@ func TestShuffle(t *testing.T) {
 	_, er := memDiscovery.GetConfigServer()
 	assert.Error(t, er)
 }*/
-
-func TestRefreshMembersConfigAddNil(t *testing.T) {
-	t.Log("Testing RefreshMembers function")
-	memDiscovery := NewConfiCenterInit(nil, "default", false, "v3", false, "")
-
-	er := memDiscovery.RefreshMembers()
-	assert.NoError(t, er)
-
-}
 
 /*func TestInit(t *testing.T) {
 	t.Log("Testing ConfigurationInit function with errors")

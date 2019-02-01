@@ -15,7 +15,7 @@
  */
 
 // Package client created on 2017/6/22.
-package client
+package ccclient
 
 // error response constants
 const (

@@ -1,7 +1,23 @@
-### Config Center client for Go-Chassis
+### go-cc-client
 [![Build Status](https://travis-ci.org/go-chassis/go-cc-client.svg?branch=master)](https://travis-ci.org/go-chassis/go-cc-client)  
 
-This is cc client which interacts with config server to get the configurations for 
-particular micro-services. It can create a web socket connection with the config server
-and receive all the change events in any of the configuration for the particular micro-service.
-It can also use rest http connections to pull the data from config server at regular intervals.
+Supported config center:
+
+- ctrip apollo https://github.com/ctripcorp/apollo
+- huawei cloud CSE config center https://www.huaweicloud.com/product/cse.html
+
+
+# Example
+Get a client of config center
+
+1. import the config client you want to use 
+``go
+_ "github.com/go-chassis/go-cc-client/configcenter"
+``
+
+2. New a client 
+``go
+c, err := ccclient.NewClient("config_center", ccclient.Options{
+		ServerURI: "http://127.0.0.1:30200",
+	})
+``
