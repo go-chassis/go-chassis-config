@@ -17,4 +17,6 @@ type Options struct {
 	EnableSSL         bool
 	APIVersion        string
 	AutoDiscovery     bool
+	RefreshPort       string
+	DimensionInfo     string
 }

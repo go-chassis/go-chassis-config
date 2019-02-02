@@ -20,7 +20,6 @@ func InstallConfigClientPlugin(name string, f func(options Options) ConfigClient
 
 //ConfigClient is the interface of config server client, it has basic func to interact with config server
 type ConfigClient interface {
-	//Init the Configuration for the Server
 	//PullConfigs pull all configs from remote
 	PullConfigs(serviceName, version, app, env string) (map[string]interface{}, error)
 	//PullConfig pull one config from remote
@@ -31,6 +30,8 @@ type ConfigClient interface {
 	PushConfigs(data map[string]interface{}, dimensionInfo string) (map[string]interface{}, error)
 	// DeleteConfigsByKeys delete config for cc by keys
 	DeleteConfigsByKeys(keys []string, dimensionInfo string) (map[string]interface{}, error)
+	//Watch get kv change results, you can compare them with local kv cache and refresh local cache
+	Watch(f func(map[string]interface{}), errHandler func(err error)) error
 }
 
 //Enable enable config server client

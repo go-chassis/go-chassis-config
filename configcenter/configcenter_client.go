@@ -24,9 +24,12 @@ import (
 	"github.com/go-mesh/openlogging"
 
 	"errors"
+	"fmt"
+	"github.com/gorilla/websocket"
 	"net/http"
-	"os"
+	"net/url"
 	"strings"
+	"time"
 )
 
 var (
@@ -46,6 +49,7 @@ var (
 )
 
 const (
+	defaultTimeout = 10 * time.Second
 	//StatusUP is a variable of type string
 	StatusUP = "UP"
 	//HeaderContentType is a variable of type string
@@ -69,20 +73,11 @@ const (
 
 //Client is Client Implementation of ConfigClient
 type Client struct {
-	memDiscovery *MemDiscovery
-}
-
-//Instance is a struct
-type Instance struct {
-	Status      string   `json:"status"`
-	ServiceName string   `json:"serviceName"`
-	IsHTTPS     bool     `json:"isHttps"`
-	EntryPoints []string `json:"endpoints"`
-}
-
-//Members is a struct
-type Members struct {
-	Instances []Instance `json:"instances"`
+	memDiscovery         *MemDiscovery
+	refreshPort          string
+	defaultDimensionInfo string
+	wsDialer             *websocket.Dialer
+	wsConnection         *websocket.Conn
 }
 
 //NewConfigCenter is a function
@@ -120,8 +115,15 @@ func NewConfigCenter(options ccclient.Options) ccclient.ConfigClient {
 		Verbose:    false,
 	}
 	memDiscovery.client, _ = httpclient.GetURLClient(opts)
+
 	ccclient := &Client{
 		memDiscovery: memDiscovery,
+		refreshPort:  options.RefreshPort,
+		wsDialer: &websocket.Dialer{
+			TLSClientConfig:  options.TLSConfig,
+			HandshakeTimeout: defaultTimeout,
+		},
+		defaultDimensionInfo: options.DimensionInfo,
 	}
 
 	configCenters := strings.Split(options.ServerURI, ",")
@@ -134,48 +136,9 @@ func NewConfigCenter(options ccclient.Options) ccclient.ConfigClient {
 	return ccclient
 }
 
-//Update the Base PATH and HEADERS Based on the version of ConfigCenter used.
-func updateAPIPath(apiVersion string) {
-
-	//Check for the env Name in Container to get Domain Name
-	//Default value is  "default"
-	projectID, isExsist := os.LookupEnv(envProjectID)
-	if !isExsist {
-		projectID = "default"
-	}
-	switch apiVersion {
-	case "v3":
-		ConfigMembersPath = "/v3/" + projectID + members
-		ConfigPath = "/v3/" + projectID + getConfigAPI
-		ConfigRefreshPath = "/v3/" + projectID + dynamicConfigAPI
-	case "v2":
-		ConfigMembersPath = "/members"
-		ConfigPath = "/configuration/v2/items"
-		ConfigRefreshPath = "/configuration/v2/refresh/items"
-	default:
-		ConfigMembersPath = "/v3/" + projectID + members
-		ConfigPath = "/v3/" + projectID + getConfigAPI
-		ConfigRefreshPath = "/v3/" + projectID + dynamicConfigAPI
-	}
-}
-
-//GetDefaultHeaders gets default headers
-func GetDefaultHeaders(tenantName string) http.Header {
-	headers := http.Header{
-		HeaderContentType: []string{"application/json"},
-		HeaderUserAgent:   []string{"cse-configcenter-client/1.0.0"},
-		HeaderTenantName:  []string{tenantName},
-	}
-	if environmentConfig != "" {
-		headers.Set(HeaderEnvironment, environmentConfig)
-	}
-
-	return headers
-}
-
 // PullConfigs is the implementation of ConfigClient to pull all the configurations from Config-Server
 func (cclient *Client) PullConfigs(serviceName, version, app, env string) (map[string]interface{}, error) {
-	// serviceName is the dimensionInfo passed from ConfigClient (small hack)
+	// serviceName is the defaultDimensionInfo passed from ConfigClient (small hack)
 	configurations, error := cclient.memDiscovery.pullConfigurationsFromServer(serviceName)
 	if error != nil {
 		return nil, error
@@ -185,8 +148,7 @@ func (cclient *Client) PullConfigs(serviceName, version, app, env string) (map[s
 
 // PullConfig is the implementation of ConfigClient to pull specific configurations from Config-Server
 func (cclient *Client) PullConfig(serviceName, version, app, env, key, contentType string) (interface{}, error) {
-
-	// serviceName is the dimensionInfo passed from ConfigClient (small hack)
+	// serviceName is the defaultDimensionInfo passed from ConfigClient (small hack)
 	// TODO use the contentType to return the configurations
 	configurations, error := cclient.memDiscovery.pullConfigurationsFromServer(serviceName)
 	if error != nil {
@@ -202,7 +164,7 @@ func (cclient *Client) PullConfig(serviceName, version, app, env, key, contentTy
 
 // PullConfigsByDI pulls the configuration for custom DimensionInfo
 func (cclient *Client) PullConfigsByDI(dimensionInfo, diInfo string) (map[string]map[string]interface{}, error) {
-	// update dimensionInfo value
+	// update defaultDimensionInfo value
 	type GetConfigAPI map[string]map[string]interface{}
 	configAPIRes := make(GetConfigAPI)
 	parsedDimensionInfo := strings.Replace(diInfo, "#", "%23", -1)
@@ -223,16 +185,13 @@ func (cclient *Client) PushConfigs(items map[string]interface{}, dimensionInfo s
 		openlogging.GetLogger().Error(em)
 		return nil, errors.New(em)
 	}
-	type CreateConfigApi struct {
-		DimensionInfo string                 `json:"dimensionsInfo"`
-		Items         map[string]interface{} `json:"items"`
-	}
+
 	configApi := CreateConfigApi{
 		DimensionInfo: dimensionInfo,
 		Items:         items,
 	}
 
-	return addDeleteConfig(cclient, configApi, http.MethodPost)
+	return cclient.addDeleteConfig(configApi, http.MethodPost)
 }
 
 // DeleteConfigsByKeys
@@ -242,18 +201,16 @@ func (cclient *Client) DeleteConfigsByKeys(keys []string, dimensionInfo string) 
 		openlogging.GetLogger().Error(em)
 		return nil, errors.New(em)
 	}
-	type DeleteConfigApi struct {
-		DimensionInfo string   `json:"dimensionsInfo"`
-		Keys          []string `json:"keys"`
-	}
+
 	configApi := DeleteConfigApi{
 		DimensionInfo: dimensionInfo,
 		Keys:          keys,
 	}
 
-	return addDeleteConfig(cclient, configApi, http.MethodDelete)
+	return cclient.addDeleteConfig(configApi, http.MethodDelete)
 }
-func addDeleteConfig(cclient *Client, data interface{}, method string) (map[string]interface{}, error) {
+
+func (cclient *Client) addDeleteConfig(data interface{}, method string) (map[string]interface{}, error) {
 	type ConfigAPI map[string]interface{}
 	configAPIS := make(ConfigAPI)
 	body, err := serializers.Encode(serializers.JsonEncoder, data)
@@ -267,10 +224,104 @@ func addDeleteConfig(cclient *Client, data interface{}, method string) (map[stri
 	}
 	return configAPIS, nil
 }
-func init() {
-	ccclient.InstallConfigClientPlugin(Name, NewConfigCenter)
+func (cclient *Client) Watch(f func(map[string]interface{}), errHandler func(err error)) error {
+	parsedDimensionInfo := strings.Replace(cclient.defaultDimensionInfo, "#", "%23", -1)
+	refreshConfigPath := ConfigRefreshPath + `?` + dimensionsInfo + `=` + parsedDimensionInfo
+	if cclient.wsDialer != nil {
+		/*-----------------
+		1. Decide on the URL
+		2. Create WebSocket Connection
+		3. Call KeepAlive in seperate thread
+		3. Generate events on Recieve Data
+		*/
+		baseURL, err := cclient.getWebSocketURL()
+		if err != nil {
+			error := errors.New("error in getting default server info")
+			return error
+		}
+		url := baseURL.String() + refreshConfigPath
+		cclient.wsConnection, _, err = cclient.wsDialer.Dial(url, nil)
+		if err != nil {
+			return fmt.Errorf("watching config-center dial catch an exception error:%s", err.Error())
+		}
+		keepAlive(cclient.wsConnection, 15*time.Second)
+		go func() error {
+			for {
+				messageType, message, err := cclient.wsConnection.ReadMessage()
+				if err != nil {
+					break
+				}
+				if messageType == websocket.TextMessage {
+					m, err := GetConfigs(message)
+					if err != nil {
+						errHandler(err)
+						continue
+					}
+					f(m)
+				}
+			}
+			err = cclient.wsConnection.Close()
+			if err != nil {
+				openlogging.Error(err.Error())
+				return fmt.Errorf("CC watch Conn close failed error:%s", err.Error())
+			}
+			return nil
+		}()
+	}
+	return nil
 }
 
-func isStatusSuccess(i int) bool {
-	return i >= http.StatusOK && i < http.StatusBadRequest
+func (cclient *Client) getWebSocketURL() (*url.URL, error) {
+	var defaultTLS bool
+	var parsedEndPoint []string
+	var host string
+
+	configCenterEntryPointList, err := cclient.memDiscovery.GetConfigServer()
+	if err != nil {
+		openlogging.GetLogger().Error("error in member discovery:" + err.Error())
+		return nil, err
+	}
+	activeEndPointList, err := cclient.memDiscovery.GetWorkingConfigCenterIP(configCenterEntryPointList)
+	if err != nil {
+		openlogging.GetLogger().Error("failed to get ip list:" + err.Error())
+	}
+	for _, server := range activeEndPointList {
+		parsedEndPoint = strings.Split(server, `://`)
+		hostArr := strings.Split(parsedEndPoint[1], `:`)
+		port := cclient.refreshPort
+		if port == "" {
+			port = "30104"
+		}
+		host = hostArr[0] + ":" + port
+		if host == "" {
+			host = "localhost"
+		}
+	}
+
+	if cclient.wsDialer.TLSClientConfig != nil {
+		defaultTLS = true
+	}
+	if host == "" {
+		err := errors.New("host must be a URL or a host:port pair")
+		openlogging.GetLogger().Error("empty host for watch action:" + err.Error())
+		return nil, err
+	}
+	hostURL, err := url.Parse(host)
+	if err != nil || hostURL.Scheme == "" || hostURL.Host == "" {
+		scheme := "ws://"
+		if defaultTLS {
+			scheme = "wss://"
+		}
+		hostURL, err = url.Parse(scheme + host)
+		if err != nil {
+			return nil, err
+		}
+		if hostURL.Path != "" && hostURL.Path != "/" {
+			return nil, fmt.Errorf("host must be a URL or a host:port pair: %q", host)
+		}
+	}
+	return hostURL, nil
+}
+func init() {
+	ccclient.InstallConfigClientPlugin(Name, NewConfigCenter)
 }
