@@ -10,9 +10,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/go-chassis/go-chassis/core/config"
-	"github.com/go-chassis/go-chassis/core/config/model"
-	"github.com/go-chassis/go-chassis/pkg/httpclient"
+	"github.com/go-chassis/http-client"
 	"github.com/go-chassis/paas-lager"
 	"github.com/go-mesh/openlogging"
 	"github.com/stretchr/testify/assert"
@@ -117,10 +115,6 @@ func TestGetDefaultHeadersArrayHeader(t *testing.T) {
 	t.Log("Testing RefreshMembers without error after initializing configuration")
 	gopath := os.Getenv("GOPATH")
 	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
-	config.Init()
-	config.GlobalDefinition = &model.GlobalCfg{}
-	config.MicroserviceDefinition = &model.MicroserviceCfg{}
-	config.MicroserviceDefinition.ServiceDescription.Environment = "dev"
 	/*func1 := func() http.Header {
 		var sl []string
 		sl = append(sl, "1")
@@ -152,19 +146,11 @@ func TestGetDefaultHeaders(t *testing.T) {
 	t.Log("Headers should contain environment")
 	gopath := os.Getenv("GOPATH")
 	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
-	config.Init()
-	config.GlobalDefinition = &model.GlobalCfg{}
-	config.MicroserviceDefinition = &model.MicroserviceCfg{}
-	config.MicroserviceDefinition.ServiceDescription.Environment = ""
 
-	if config.MicroserviceDefinition == nil {
-		config.MicroserviceDefinition = &model.MicroserviceCfg{}
-	}
 	h := GetDefaultHeaders("")
 	assert.Equal(t, "", h.Get(HeaderEnvironment))
 
 	e := strconv.Itoa(rand.Int())
-	config.MicroserviceDefinition.ServiceDescription.Environment = e
 	h = GetDefaultHeaders("")
 	assert.Equal(t, e, h.Get(HeaderEnvironment))
 }
@@ -193,8 +179,6 @@ func TestMemDiscovery_HTTPDo(t *testing.T) {
 
 	gopath := os.Getenv("GOPATH")
 	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
-	config.Init()
-	config.GlobalDefinition = &model.GlobalCfg{}
 
 	ccClient := new(MemDiscovery)
 	//ccClient := NewConfiCenterInit(nil, "default", false)

@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-chassis/go-cc-client"
 	"github.com/go-chassis/go-cc-client/serializers"
-	"github.com/go-chassis/go-chassis/pkg/httpclient"
+	"github.com/go-chassis/http-client"
 	"github.com/go-mesh/openlogging"
 )
 
@@ -194,7 +194,9 @@ func InitConfigApollo(options ccclient.Options) ccclient.ConfigClient {
 	apolloClient.NewApolloClient()
 	return apolloClient
 }
-
+func (apolloClient *Client) Watch(f func(map[string]interface{}), errHandler func(err error)) error {
+	return nil
+}
 func init() {
 	ccclient.InstallConfigClientPlugin(Name, InitConfigApollo)
 }

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-chassis/go-cc-client/serializers"
-	"github.com/go-chassis/go-chassis/pkg/httpclient"
+	"github.com/go-chassis/http-client"
 	"github.com/go-mesh/openlogging"
 	"io/ioutil"
 	"math/rand"

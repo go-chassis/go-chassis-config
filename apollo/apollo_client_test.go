@@ -3,8 +3,6 @@ package apollo
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/go-chassis/go-chassis/core/config"
-	"github.com/go-chassis/go-chassis/core/config/model"
 	"github.com/go-chassis/paas-lager"
 	"github.com/go-mesh/openlogging"
 	"github.com/stretchr/testify/assert"
@@ -35,8 +33,6 @@ func TestApolloClient_HTTPDo(t *testing.T) {
 
 	gopath := os.Getenv("GOPATH")
 	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
-	config.Init()
-	config.GlobalDefinition = &model.GlobalCfg{}
 
 	apolloClient := &Client{}
 	apolloClient.NewApolloClient()
@@ -73,15 +69,9 @@ func TestApolloClient_PullConfig(t *testing.T) {
 
 	gopath := os.Getenv("GOPATH")
 	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
-	config.Init()
-	config.GlobalDefinition = &model.GlobalCfg{}
 
 	apolloClient := &Client{}
 	apolloClient.NewApolloClient()
-	config.GlobalDefinition.Cse.Config.Client.ServerURI = "http://127.0.0.1:9875"
-	config.GlobalDefinition.Cse.Config.Client.ApolloServiceName = "TestApp"
-	config.GlobalDefinition.Cse.Config.Client.ClusterName = "Default"
-	config.GlobalDefinition.Cse.Config.Client.ApolloNameSpace = "application"
 
 	//Test existing Services
 	configResponse, error := apolloClient.PullConfig("TestApp", "1.0", "SampleApp", "Default", "timeout", "")
@@ -93,7 +83,6 @@ func TestApolloClient_PullConfig(t *testing.T) {
 	assert.Contains(t, error.Error(), "No Key found")
 
 	// Test the non-exsisting Service
-	config.GlobalDefinition.Cse.Config.Client.ApolloServiceName = "Non-exsitingAppID"
 	configResponse, error = apolloClient.PullConfig("TestApp", "1.0", "SampleApp", "Default", "non-exsiting", "")
 	assert.Contains(t, error.Error(), "Bad Response")
 
@@ -120,15 +109,9 @@ func TestApolloClient_PullConfigs(t *testing.T) {
 
 	gopath := os.Getenv("GOPATH")
 	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
-	config.Init()
-	config.GlobalDefinition = &model.GlobalCfg{}
 
 	apolloClient := &Client{}
 	apolloClient.NewApolloClient()
-	config.GlobalDefinition.Cse.Config.Client.ServerURI = "http://127.0.0.1:9874"
-	config.GlobalDefinition.Cse.Config.Client.ApolloServiceName = "SampleApp"
-	config.GlobalDefinition.Cse.Config.Client.ClusterName = "Default"
-	config.GlobalDefinition.Cse.Config.Client.ApolloNameSpace = "application"
 
 	//Test existing Services
 	configResponse, error := apolloClient.PullConfigs("SampleApp", "1.0", "SampleApp", "Default")
@@ -136,7 +119,6 @@ func TestApolloClient_PullConfigs(t *testing.T) {
 	assert.Equal(t, error, nil)
 
 	//Test the non-existing Services
-	config.GlobalDefinition.Cse.Config.Client.ApolloServiceName = "Non-exsitingAppID"
 	configResponse, error = apolloClient.PullConfigs("SampleApp", "1.0", "SampleApp", "Default")
 	assert.Contains(t, error.Error(), "Bad Response")
 
