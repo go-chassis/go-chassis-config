@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/go-chassis/http-client"
+	"github.com/go-chassis/foundation/httpclient"
 	"github.com/go-chassis/paas-lager"
 	"github.com/go-mesh/openlogging"
 	"github.com/stretchr/testify/assert"

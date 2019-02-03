@@ -18,9 +18,9 @@
 package configcenter
 
 import (
+	"github.com/go-chassis/foundation/httpclient"
 	"github.com/go-chassis/go-cc-client"
 	"github.com/go-chassis/go-cc-client/serializers"
-	"github.com/go-chassis/http-client"
 	"github.com/go-mesh/openlogging"
 
 	"errors"
