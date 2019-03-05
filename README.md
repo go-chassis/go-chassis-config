@@ -27,7 +27,7 @@ c, err := ccclient.NewClient("config_center", ccclient.Options{
 ```go
 import (
 	"github.com/huaweicse/auth"
-	"github.com/go-chassis/go-chassis/pkg/httpclient"
+	"github.com/go-chassis/foundation/httpclient"
 	_ "github.com/go-chassis/go-cc-client/configcenter"
 )
 
