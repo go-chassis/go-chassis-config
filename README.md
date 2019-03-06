@@ -1,19 +1,21 @@
 ### go-cc-client
 [![Build Status](https://travis-ci.org/go-chassis/go-cc-client.svg?branch=master)](https://travis-ci.org/go-chassis/go-cc-client)  
-config center client can pull and push configs in distributed configuration management service
+config center client can pull and push configs in distributed configuration 
+management service
 
 Supported distributed configuration management service:
 
-- ctrip apollo https://github.com/ctripcorp/apollo
-- huawei cloud CSE config center https://www.huaweicloud.com/product/cse.html
-
+| name       | import                                         |description    |
+|----------|----------|:-------------:|
+|config_name |github.com/go-chassis/go-cc-client/configcenter |huawei cloud CSE config center https://www.huaweicloud.com/product/cse.html |
+|apollo      |github.com/go-chassis/go-cc-client/apollo       |ctrip apollo https://github.com/ctripcorp/apollo |
 
 # Example
 Get a client of config center
 
 1. import the config client you want to use 
 ```go
-_ "github.com/go-chassis/go-cc-client/configcenter"
+import _ "github.com/go-chassis/go-cc-client/configcenter"
 ```
 
 2. Create a client 

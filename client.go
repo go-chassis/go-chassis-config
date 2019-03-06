@@ -34,14 +34,13 @@ type ConfigClient interface {
 	Watch(f func(map[string]interface{}), errHandler func(err error)) error
 }
 
-//Enable enable config server client
+//NewClient create config client implementation
 func NewClient(name string, options Options) (ConfigClient, error) {
 	plugins := configClientPlugins[name]
 	if plugins == nil {
 		return nil, errors.New(fmt.Sprintf("plugin [%s] not found", name))
 	}
 	DefaultClient = plugins(options)
-
 	openlogging.GetLogger().Infof("%s plugin is enabled", name)
 	return DefaultClient, nil
 }
