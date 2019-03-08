@@ -7,7 +7,7 @@ Supported distributed configuration management service:
 
 | name       | import                                         |description    |
 |----------|----------|:-------------:|
-|config_name |github.com/go-chassis/go-cc-client/configcenter |huawei cloud CSE config center https://www.huaweicloud.com/product/cse.html |
+|config_center |github.com/go-chassis/go-cc-client/configcenter |huawei cloud CSE config center https://www.huaweicloud.com/product/cse.html |
 |apollo      |github.com/go-chassis/go-cc-client/apollo       |ctrip apollo https://github.com/ctripcorp/apollo |
 
 # Example
