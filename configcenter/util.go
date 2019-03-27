@@ -3,7 +3,7 @@ package configcenter
 import (
 	"fmt"
 
-	"github.com/go-chassis/go-cc-client/serializers"
+	"github.com/go-chassis/go-chassis-config/serializers"
 	"github.com/go-mesh/openlogging"
 	"github.com/gorilla/websocket"
 	"net/http"

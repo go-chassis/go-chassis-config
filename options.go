@@ -1,4 +1,4 @@
-package ccclient
+package config
 
 import "crypto/tls"
 

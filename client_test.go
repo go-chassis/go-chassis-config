@@ -1,14 +1,15 @@
-package ccclient_test
+package config_test
 
 import (
-	"github.com/go-chassis/go-cc-client"
-	_ "github.com/go-chassis/go-cc-client/configcenter"
+	"github.com/go-chassis/go-chassis-config"
 	"github.com/stretchr/testify/assert"
 	"testing"
+
+	_ "github.com/go-chassis/go-chassis-config/configcenter"
 )
 
 func TestEnable(t *testing.T) {
-	c, err := ccclient.NewClient("config_center", ccclient.Options{
+	c, err := config.NewClient("config_center", config.Options{
 		ServerURI: "http://127.0.0.1:30100",
 	})
 	assert.NoError(t, err)

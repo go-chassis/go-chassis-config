@@ -19,7 +19,7 @@ package serializers
 
 import (
 	"errors"
-	"github.com/go-chassis/go-cc-client/serializers/json"
+	"github.com/go-chassis/go-chassis-config/serializers/json"
 )
 
 const (

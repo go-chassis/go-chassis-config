@@ -7,12 +7,12 @@ import (
 	"strings"
 
 	"github.com/go-chassis/foundation/httpclient"
-	"github.com/go-chassis/go-cc-client"
-	"github.com/go-chassis/go-cc-client/serializers"
+	"github.com/go-chassis/go-chassis-config"
+	"github.com/go-chassis/go-chassis-config/serializers"
 	"github.com/go-mesh/openlogging"
 )
 
-// Client contains the implementation of ConfigClient
+// Client contains the implementation of Client
 type Client struct {
 	name        string
 	client      *httpclient.URLClient
@@ -50,7 +50,7 @@ func (apolloClient *Client) HTTPDo(method string, rawURL string, headers http.He
 	return apolloClient.client.HTTPDo(method, rawURL, headers, body)
 }
 
-// PullConfigs is the implementation of ConfigClient and pulls all the configuration for a given serviceName
+// PullConfigs is the implementation of Client and pulls all the configuration for a given serviceName
 func (apolloClient *Client) PullConfigs(serviceName, version, app, env string) (map[string]interface{}, error) {
 	/*
 		1. Compose the URL
@@ -103,7 +103,7 @@ func (apolloClient *Client) PullConfigs(serviceName, version, app, env string) (
 	return configValues, nil
 }
 
-// PullConfig is the implementation of the ConfigClient
+// PullConfig is the implementation of the Client
 func (apolloClient *Client) PullConfig(serviceName, version, app, env, key, contentType string) (interface{}, error) {
 	/*
 		1. Compose the URL
@@ -184,7 +184,7 @@ func (apolloClient *Client) DeleteConfigsByKeys(keys []string, dimensionInfo str
 }
 
 //InitConfigApollo initialize the Apollo Client
-func InitConfigApollo(options ccclient.Options) ccclient.ConfigClient {
+func InitConfigApollo(options config.Options) config.Client {
 	apolloClient := &Client{
 		serviceName: options.ApolloServiceName,
 		cluster:     options.Cluster,
@@ -198,5 +198,5 @@ func (apolloClient *Client) Watch(f func(map[string]interface{}), errHandler fun
 	return nil
 }
 func init() {
-	ccclient.InstallConfigClientPlugin(Name, InitConfigApollo)
+	config.InstallConfigClientPlugin(Name, InitConfigApollo)
 }
