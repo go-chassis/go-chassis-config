@@ -4,8 +4,9 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+
 	"github.com/go-chassis/foundation/httpclient"
-	"github.com/go-chassis/go-cc-client/serializers"
+	"github.com/go-chassis/go-chassis-config/serializers"
 	"github.com/go-mesh/openlogging"
 	"io/ioutil"
 	"math/rand"

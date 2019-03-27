@@ -2,7 +2,7 @@ package configcenter_test
 
 import (
 	"encoding/json"
-	"github.com/go-chassis/go-cc-client/configcenter"
+	"github.com/go-chassis/go-chassis-config/configcenter"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

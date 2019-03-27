@@ -19,12 +19,12 @@ package configcenter
 
 import (
 	"github.com/go-chassis/foundation/httpclient"
-	"github.com/go-chassis/go-cc-client"
-	"github.com/go-chassis/go-cc-client/serializers"
 	"github.com/go-mesh/openlogging"
 
 	"errors"
 	"fmt"
+	"github.com/go-chassis/go-chassis-config"
+	"github.com/go-chassis/go-chassis-config/serializers"
 	"github.com/gorilla/websocket"
 	"net/http"
 	"net/url"
@@ -71,7 +71,7 @@ const (
 	Name = "config_center"
 )
 
-//Client is Client Implementation of ConfigClient
+//Client is Client Implementation of Client
 type Client struct {
 	memDiscovery         *MemDiscovery
 	refreshPort          string
@@ -81,7 +81,7 @@ type Client struct {
 }
 
 //NewConfigCenter is a function
-func NewConfigCenter(options ccclient.Options) ccclient.ConfigClient {
+func NewConfigCenter(options config.Options) config.Client {
 	memDiscovery := new(MemDiscovery)
 	//memDiscovery.Logger = logger
 	memDiscovery.TLSConfig = options.TLSConfig
@@ -136,9 +136,9 @@ func NewConfigCenter(options ccclient.Options) ccclient.ConfigClient {
 	return ccclient
 }
 
-// PullConfigs is the implementation of ConfigClient to pull all the configurations from Config-Server
+// PullConfigs is the implementation of Client to pull all the configurations from Config-Server
 func (cclient *Client) PullConfigs(serviceName, version, app, env string) (map[string]interface{}, error) {
-	// serviceName is the defaultDimensionInfo passed from ConfigClient (small hack)
+	// serviceName is the defaultDimensionInfo passed from Client (small hack)
 	configurations, error := cclient.memDiscovery.pullConfigurationsFromServer(serviceName)
 	if error != nil {
 		return nil, error
@@ -146,9 +146,9 @@ func (cclient *Client) PullConfigs(serviceName, version, app, env string) (map[s
 	return configurations, nil
 }
 
-// PullConfig is the implementation of ConfigClient to pull specific configurations from Config-Server
+// PullConfig is the implementation of Client to pull specific configurations from Config-Server
 func (cclient *Client) PullConfig(serviceName, version, app, env, key, contentType string) (interface{}, error) {
-	// serviceName is the defaultDimensionInfo passed from ConfigClient (small hack)
+	// serviceName is the defaultDimensionInfo passed from Client (small hack)
 	// TODO use the contentType to return the configurations
 	configurations, error := cclient.memDiscovery.pullConfigurationsFromServer(serviceName)
 	if error != nil {
@@ -323,5 +323,5 @@ func (cclient *Client) getWebSocketURL() (*url.URL, error) {
 	return hostURL, nil
 }
 func init() {
-	ccclient.InstallConfigClientPlugin(Name, NewConfigCenter)
+	config.InstallConfigClientPlugin(Name, NewConfigCenter)
 }

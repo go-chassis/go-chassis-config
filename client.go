@@ -1,4 +1,4 @@
-package ccclient
+package config
 
 import (
 	"errors"
@@ -7,19 +7,19 @@ import (
 	"github.com/go-mesh/openlogging"
 )
 
-var configClientPlugins = make(map[string]func(options Options) ConfigClient)
+var configClientPlugins = make(map[string]func(options Options) Client)
 
 //DefaultClient is config server's client
-var DefaultClient ConfigClient
+var DefaultClient Client
 
 //InstallConfigClientPlugin install a config client plugin
-func InstallConfigClientPlugin(name string, f func(options Options) ConfigClient) {
+func InstallConfigClientPlugin(name string, f func(options Options) Client) {
 	configClientPlugins[name] = f
 	openlogging.GetLogger().Infof("Installed %s Plugin", name)
 }
 
-//ConfigClient is the interface of config server client, it has basic func to interact with config server
-type ConfigClient interface {
+//Client is the interface of config server client, it has basic func to interact with config server
+type Client interface {
 	//PullConfigs pull all configs from remote
 	PullConfigs(serviceName, version, app, env string) (map[string]interface{}, error)
 	//PullConfig pull one config from remote
@@ -35,7 +35,7 @@ type ConfigClient interface {
 }
 
 //NewClient create config client implementation
-func NewClient(name string, options Options) (ConfigClient, error) {
+func NewClient(name string, options Options) (Client, error) {
 	plugins := configClientPlugins[name]
 	if plugins == nil {
 		return nil, errors.New(fmt.Sprintf("plugin [%s] not found", name))
