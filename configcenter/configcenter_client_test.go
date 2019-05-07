@@ -39,7 +39,7 @@ func (*TestingSource) GetConfigCenters() []string {
 /*func TestGetConfigServerIsInitErr(t *testing.T) {
 	t.Log("Testing GetConfigServer function for errors")
 	gopath := os.Getenv("GOPATH")
-	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
+	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/go-chassis/go-chassis/examples/discovery/server/")
 	config.Init()
 	memDiscovery := NewConfiCenterInit(nil, "default", false)
 	testSource := &TestingSource{}
@@ -70,7 +70,7 @@ func (*TestingSource) GetConfigCenters() []string {
 /*func TestGetConfigServerAutoDiscovery(t *testing.T) {
 	t.Log("Testing GetConfigServer function Auto discovery")
 	gopath := os.Getenv("GOPATH")
-	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
+	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/go-chassis/go-chassis/examples/discovery/server/")
 	config.Init()
 	config.GlobalDefinition = &model.GlobalCfg{}
 	config.GlobalDefinition.Cse.Config.Client.Autodiscovery = true
@@ -86,7 +86,7 @@ func (*TestingSource) GetConfigCenters() []string {
 /*func TestGetConfigServer(t *testing.T) {
 	t.Log("Testing GetConfigServer without errors after initializing configurations")
 	gopath := os.Getenv("GOPATH")
-	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
+	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/go-chassis/go-chassis/examples/discovery/server/")
 	config.Init()
 	memDiscovery := NewConfiCenterInit(nil, "default", false)
 	testSource := &TestingSource{}
@@ -114,7 +114,7 @@ func (*TestingSource) GetConfigCenters() []string {
 func TestGetDefaultHeadersArrayHeader(t *testing.T) {
 	t.Log("Testing RefreshMembers without error after initializing configuration")
 	gopath := os.Getenv("GOPATH")
-	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
+	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/go-chassis/go-chassis/examples/discovery/server/")
 	/*func1 := func() http.Header {
 		var sl []string
 		sl = append(sl, "1")
@@ -130,7 +130,7 @@ func TestGetDefaultHeadersArrayHeader(t *testing.T) {
 /*func TestGetWorkingConfigCenterIP(t *testing.T) {
 	t.Log("Testing GetWorkingConfigCenterIP function")
 	gopath := os.Getenv("GOPATH")
-	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
+	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/go-chassis/go-chassis/examples/discovery/server/")
 	config.Init()
 	memDiscovery := NewConfiCenterInit(nil, "default", false)
 	testSource := &TestingSource{}
@@ -145,7 +145,7 @@ func TestGetDefaultHeadersArrayHeader(t *testing.T) {
 func TestGetDefaultHeaders(t *testing.T) {
 	t.Log("Headers should contain environment")
 	gopath := os.Getenv("GOPATH")
-	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
+	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/go-chassis/go-chassis/examples/discovery/server/")
 
 	h := GetDefaultHeaders("")
 	assert.Equal(t, "", h.Get(HeaderEnvironment))
@@ -178,7 +178,7 @@ func TestMemDiscovery_HTTPDo(t *testing.T) {
 	helper := startHttpServer(":9876", "/test", keepAlive)
 
 	gopath := os.Getenv("GOPATH")
-	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
+	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/go-chassis/go-chassis/examples/discovery/server/")
 
 	ccClient := new(MemDiscovery)
 	//ccClient := NewConfiCenterInit(nil, "default", false)

@@ -32,7 +32,7 @@ func TestApolloClient_HTTPDo(t *testing.T) {
 	helper := startHttpServer(":9876", "/test", keepAlive)
 
 	gopath := os.Getenv("GOPATH")
-	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
+	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/go-chassis/go-chassis/examples/discovery/server/")
 
 	apolloClient := &Client{}
 	apolloClient.NewApolloClient()
@@ -68,7 +68,7 @@ func TestApolloClient_PullConfig(t *testing.T) {
 	helper := startHttpServer(":9875", "/configs/TestApp/Default/application", configBody)
 
 	gopath := os.Getenv("GOPATH")
-	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
+	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/go-chassis/go-chassis/examples/discovery/server/")
 
 	apolloClient := &Client{}
 	apolloClient.NewApolloClient()
@@ -108,7 +108,7 @@ func TestApolloClient_PullConfigs(t *testing.T) {
 	helper := startHttpServer(":9874", "/configs/SampleApp/Default/application", configBody)
 
 	gopath := os.Getenv("GOPATH")
-	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/ServiceComb/go-chassis/examples/discovery/server/")
+	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/go-chassis/go-chassis/examples/discovery/server/")
 
 	apolloClient := &Client{}
 	apolloClient.NewApolloClient()
