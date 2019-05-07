@@ -11,9 +11,9 @@ tar -xvf etcd-v3.1.8-linux-amd64.tar.gz
 cd -
 mkdir -p apache
 cd apache
-git clone https://github.com/apache/incubator-servicecomb-service-center.git
-cd incubator-servicecomb-service-center
+git clone https://github.com/apache/servicecomb-service-center.git
+cd servicecomb-service-center
 gvt restore
-go build -o incubator-servicecomb-service-center
+go build -o servicecomb-service-center
 cp -r etc/conf .
-./incubator-servicecomb-service-center > start-sc.log 2>&1 &
+./servicecomb-service-center > start-sc.log 2>&1 &
