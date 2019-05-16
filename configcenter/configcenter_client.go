@@ -112,7 +112,6 @@ func NewConfigCenter(options config.Options) config.Client {
 		SSLEnabled: options.EnableSSL,
 		TLSConfig:  options.TLSConfig,
 		Compressed: false,
-		Verbose:    false,
 	}
 	memDiscovery.client, _ = httpclient.GetURLClient(opts)
 
