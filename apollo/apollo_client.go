@@ -35,7 +35,6 @@ func (apolloClient *Client) NewApolloClient() {
 		SSLEnabled: false,
 		TLSConfig:  nil, //TODO Analyse the TLS configuration of Apollo Server
 		Compressed: false,
-		Verbose:    false,
 	}
 	var err error
 	apolloClient.client, err = httpclient.GetURLClient(options)
