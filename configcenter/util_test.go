@@ -15,38 +15,15 @@
  * limitations under the License.
  */
 
-package configcenter
+package configcenter_test
 
 import (
-	"crypto/tls"
-	"net/http"
+	"github.com/go-chassis/go-chassis-config/configcenter"
+	"gopkg.in/go-playground/assert.v1"
+	"testing"
 )
 
-type Options struct {
-	DefaultDimension string
-	Service          string
-	App              string
-	Version          string
-	Env              string
-
-	ConfigServerAddresses []string
-	RefreshPort           string
-	APIVersion            string
-	TLSConfig             *tls.Config
-	TenantName            string
-	EnableSSL             bool
-}
-
-//GetDefaultHeaders gets default headers
-func GetDefaultHeaders(tenantName string) http.Header {
-	headers := http.Header{
-		HeaderContentType: []string{"application/json"},
-		HeaderUserAgent:   []string{"cse-configcenter-client/1.0.0"},
-		HeaderTenantName:  []string{tenantName},
-	}
-	if environmentConfig != "" {
-		headers.Set(HeaderEnvironment, environmentConfig)
-	}
-
-	return headers
+func TestGenerateDimension(t *testing.T) {
+	d, _ := configcenter.GenerateDimension("cart", "1.0.0", "default")
+	assert.Equal(t, "cart@default#1.0.0", d)
 }
