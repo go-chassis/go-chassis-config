@@ -27,9 +27,9 @@ type Client interface {
 	//PullConfigsByDI pulls the configurations with customized DimensionInfo/Project
 	PullConfigsByDI(dimensionInfo string) (map[string]map[string]interface{}, error)
 	// PushConfigs push config to cc
-	PushConfigs(data map[string]interface{}, dimensionInfo string) (map[string]interface{}, error)
+	PushConfigs(data map[string]interface{}, serviceName, version, app, env string) (map[string]interface{}, error)
 	// DeleteConfigsByKeys delete config for cc by keys
-	DeleteConfigsByKeys(keys []string, dimensionInfo string) (map[string]interface{}, error)
+	DeleteConfigsByKeys(keys []string, serviceName, version, app, env string) (map[string]interface{}, error)
 	//Watch get kv change results, you can compare them with local kv cache and refresh local cache
 	Watch(f func(map[string]interface{}), errHandler func(err error)) error
 }

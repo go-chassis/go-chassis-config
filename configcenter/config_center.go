@@ -38,10 +38,9 @@ const (
 
 //ConfigCenter is ConfigCenter Implementation of ConfigCenter
 type ConfigCenter struct {
-	c                    *configcenter.Client
-	refreshPort          string
-	defaultDimensionInfo string
-	wsDialer             *websocket.Dialer
+	c           *configcenter.Client
+	refreshPort string
+	wsDialer    *websocket.Dialer
 }
 
 //NewConfigCenter is a function
@@ -52,9 +51,13 @@ func NewConfigCenter(options config.Options) (config.Client, error) {
 		value = strings.Replace(value, " ", "", -1)
 		cCenters = append(cCenters, value)
 	}
+	d, err := GenerateDimension(options.ServiceName, options.Version, options.App)
+	if err != nil {
+		return nil, err
+	}
 	c, err := configcenter.New(configcenter.Options{
 		ConfigServerAddresses: cCenters,
-		DefaultDimension:      options.DimensionInfo,
+		DefaultDimension:      d,
 		TLSConfig:             options.TLSConfig,
 		TenantName:            options.TenantName,
 		EnableSSL:             options.EnableSSL,
@@ -65,9 +68,8 @@ func NewConfigCenter(options config.Options) (config.Client, error) {
 	}
 
 	cc := &ConfigCenter{
-		c:                    c,
-		refreshPort:          options.RefreshPort,
-		defaultDimensionInfo: options.DimensionInfo,
+		c:           c,
+		refreshPort: options.RefreshPort,
 	}
 
 	return cc, nil
@@ -75,8 +77,11 @@ func NewConfigCenter(options config.Options) (config.Client, error) {
 
 // PullConfigs is the implementation of ConfigCenter to pull all the configurations from Config-Server
 func (c *ConfigCenter) PullConfigs(serviceName, version, app, env string) (map[string]interface{}, error) {
-	// serviceName is the defaultDimensionInfo passed from ConfigCenter (small hack)
-	configurations, error := c.c.Pull(serviceName)
+	d, err := GenerateDimension(serviceName, version, app)
+	if err != nil {
+		return nil, err
+	}
+	configurations, error := c.c.Pull(d)
 	if error != nil {
 		return nil, error
 	}
@@ -85,9 +90,12 @@ func (c *ConfigCenter) PullConfigs(serviceName, version, app, env string) (map[s
 
 // PullConfig is the implementation of ConfigCenter to pull specific configurations from Config-Server
 func (c *ConfigCenter) PullConfig(serviceName, version, app, env, key, contentType string) (interface{}, error) {
-	// serviceName is the defaultDimensionInfo passed from ConfigCenter (small hack)
+	d, err := GenerateDimension(serviceName, version, app)
+	if err != nil {
+		return nil, err
+	}
 	// TODO use the contentType to return the configurations
-	configurations, error := c.c.Pull(serviceName)
+	configurations, error := c.c.Pull(d)
 	if error != nil {
 		return nil, error
 	}
@@ -111,15 +119,18 @@ func (c *ConfigCenter) PullConfigsByDI(dimensionInfo string) (map[string]map[str
 }
 
 // PushConfigs push configs to ConfigSource cc , success will return { "Result": "Success" }
-func (c *ConfigCenter) PushConfigs(items map[string]interface{}, dimensionInfo string) (map[string]interface{}, error) {
+func (c *ConfigCenter) PushConfigs(items map[string]interface{}, serviceName, version, app, env string) (map[string]interface{}, error) {
 	if len(items) == 0 {
 		em := "data is empty , which data need to send cc"
 		openlogging.GetLogger().Error(em)
 		return nil, errors.New(em)
 	}
-
+	d, err := GenerateDimension(serviceName, version, app)
+	if err != nil {
+		return nil, err
+	}
 	configApi := &configcenter.CreateConfigApi{
-		DimensionInfo: dimensionInfo,
+		DimensionInfo: d,
 		Items:         items,
 	}
 
@@ -127,15 +138,18 @@ func (c *ConfigCenter) PushConfigs(items map[string]interface{}, dimensionInfo s
 }
 
 // DeleteConfigsByKeys
-func (c *ConfigCenter) DeleteConfigsByKeys(keys []string, dimensionInfo string) (map[string]interface{}, error) {
+func (c *ConfigCenter) DeleteConfigsByKeys(keys []string, serviceName, version, app, env string) (map[string]interface{}, error) {
 	if len(keys) == 0 {
 		em := "not key need to delete for cc, please check keys"
 		openlogging.GetLogger().Error(em)
 		return nil, errors.New(em)
 	}
-
+	d, err := GenerateDimension(serviceName, version, app)
+	if err != nil {
+		return nil, err
+	}
 	configApi := &configcenter.DeleteConfigApi{
-		DimensionInfo: dimensionInfo,
+		DimensionInfo: d,
 		Keys:          keys,
 	}
 
