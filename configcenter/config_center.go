@@ -55,6 +55,7 @@ func NewConfigCenter(options config.Options) (config.Client, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	c, err := configcenter.New(configcenter.Options{
 		ConfigServerAddresses: cCenters,
 		DefaultDimension:      d,
@@ -71,7 +72,13 @@ func NewConfigCenter(options config.Options) (config.Client, error) {
 		c:           c,
 		refreshPort: options.RefreshPort,
 	}
-
+	openlogging.Info("new config center client", openlogging.WithTags(
+		openlogging.Tags{
+			"dimension": d,
+			"ws_port":   options.RefreshPort,
+			"ssl":       options.EnableSSL,
+			"ep":        cCenters,
+		}))
 	return cc, nil
 }
 
