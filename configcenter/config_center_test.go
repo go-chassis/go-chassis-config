@@ -5,6 +5,7 @@ import (
 	"github.com/go-chassis/go-chassis-config/configcenter"
 	"github.com/go-chassis/paas-lager"
 	"github.com/go-mesh/openlogging"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -20,5 +21,6 @@ func init() {
 }
 
 func TestNewConfigCenter(t *testing.T) {
-	configcenter.NewConfigCenter(config.Options{})
+	c, _ := configcenter.NewConfigCenter(config.Options{App: "default"})
+	assert.Equal(t, "default", c.Options().App)
 }
