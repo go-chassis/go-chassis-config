@@ -39,6 +39,7 @@ const (
 //ConfigCenter is ConfigCenter Implementation of ConfigCenter
 type ConfigCenter struct {
 	c           *configcenter.Client
+	opts        config.Options
 	refreshPort string
 	wsDialer    *websocket.Dialer
 }
@@ -70,6 +71,7 @@ func NewConfigCenter(options config.Options) (config.Client, error) {
 
 	cc := &ConfigCenter{
 		c:           c,
+		opts:        options,
 		refreshPort: options.RefreshPort,
 	}
 	openlogging.Info("new config center client", openlogging.WithTags(
@@ -84,6 +86,15 @@ func NewConfigCenter(options config.Options) (config.Client, error) {
 
 // PullConfigs is the implementation of ConfigCenter to pull all the configurations from Config-Server
 func (c *ConfigCenter) PullConfigs(serviceName, version, app, env string) (map[string]interface{}, error) {
+	if app == "" {
+		app = c.opts.App
+	}
+	if version == "" {
+		version = c.opts.Version
+	}
+	if serviceName == "" {
+		serviceName = c.opts.ServiceName
+	}
 	d, err := GenerateDimension(serviceName, version, app)
 	if err != nil {
 		return nil, err
@@ -97,6 +108,15 @@ func (c *ConfigCenter) PullConfigs(serviceName, version, app, env string) (map[s
 
 // PullConfig is the implementation of ConfigCenter to pull specific configurations from Config-Server
 func (c *ConfigCenter) PullConfig(serviceName, version, app, env, key, contentType string) (interface{}, error) {
+	if app == "" {
+		app = c.opts.App
+	}
+	if version == "" {
+		version = c.opts.Version
+	}
+	if serviceName == "" {
+		serviceName = c.opts.ServiceName
+	}
 	d, err := GenerateDimension(serviceName, version, app)
 	if err != nil {
 		return nil, err
@@ -167,4 +187,8 @@ func (c *ConfigCenter) Watch(f func(map[string]interface{}), errHandler func(err
 }
 func init() {
 	config.InstallConfigClientPlugin(Name, NewConfigCenter)
+}
+
+func (c *ConfigCenter) Options() config.Options {
+	return c.opts
 }
