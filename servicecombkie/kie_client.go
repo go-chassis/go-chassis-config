@@ -50,8 +50,17 @@ const (
 	RetDelErr = 1
 )
 
-// NewKieClient init's the necessary objects needed for seamless communication to Kie Server
-func (kieClient *Client) NewKieClient() {
+// NewClient init the necessary objects needed for seamless communication to Kie Server
+func NewClient(options config.Options) (config.Client, error) {
+	kieClient := &Client{
+		serviceName:   options.ServiceName,
+		version:       options.Version,
+		URI:           options.ServerURI,
+		EnableSSL:     options.EnableSSL,
+		AutoDiscovery: options.AutoDiscovery,
+		Namespace:     options.Namespace,
+		TenantName:    options.TenantName,
+	}
 	defaultLabels := make(map[string]string)
 	configInfo := sckieclient.Config{Endpoint: kieClient.URI, DefaultLabels: defaultLabels, VerifyPeer: kieClient.EnableSSL}
 	var err error
@@ -60,6 +69,7 @@ func (kieClient *Client) NewKieClient() {
 		openlogging.GetLogger().Error("KieClient Initialization Failed: " + err.Error())
 	}
 	openlogging.GetLogger().Debugf("KieClient Initialized successfully")
+	return kieClient, err
 }
 
 // PullConfigs is used for pull config from servicecomb-kie
@@ -69,18 +79,17 @@ func (kieClient *Client) PullConfigs(serviceName, version, app, env string) (map
 	configsInfo := make(map[string]interface{})
 	configurationsValue, err := kieClient.KieClient.SearchByLabels(context.TODO(), sckieclient.WithGetProject(serviceName), sckieclient.WithLabels(labels))
 	if err != nil {
-		openlogging.GetLogger().Errorf("Error in Querying the Response from Kie %s %s %s %s %s", err.Error(), serviceName, version, app, env)
+		openlogging.GetLogger().Errorf("Error in Querying the Response from Kie %s %#v", err.Error(), labels)
 		return nil, err
 	}
-	openlogging.GetLogger().Debugf("KieClient begin PullConfigs1")
-	openlogging.GetLogger().Debugf("KieClient SearchByLabels. %s %s %s %s", serviceName, version, app, env)
+	openlogging.GetLogger().Debugf("KieClient SearchByLabels. %#v", labels)
 	//Parse config result.
 	for _, docRes := range configurationsValue {
 		for _, docInfo := range docRes.Data {
 			configsInfo[docInfo.Key] = docInfo.Value
 			configDetail, err := utils.Convert2JavaProps(docInfo.Key, []byte(docInfo.Value))
 			if err != nil {
-				openlogging.GetLogger().Errorf("Error in Parse the Response from Kie %s %s %s %s %s ", err.Error(), serviceName, version, app, env)
+				openlogging.GetLogger().Errorf("Error in Parse the Response from Kie %s %#v", err.Error(), labels)
 			}
 			for key, value := range configDetail {
 				configsInfo[key] = value
@@ -175,23 +184,6 @@ func (kieClient *Client) Options() config.Options {
 	return optionInfo
 }
 
-//InitConfigKie initialize the Kie Client
-func InitConfigKie(options config.Options) (config.Client, error) {
-	fmt.Println("InitConfigKie")
-	kieClient := &Client{
-		serviceName:   options.ServiceName,
-		version:       options.Version,
-		URI:           options.ServerURI,
-		EnableSSL:     options.EnableSSL,
-		AutoDiscovery: options.AutoDiscovery,
-		Namespace:     options.Namespace,
-		TenantName:    options.TenantName,
-	}
-	kieClient.NewKieClient()
-	return kieClient, nil
-}
-
 func init() {
-	config.InstallConfigClientPlugin(Name, InitConfigKie)
-	//fmt.Println("init config client plugin:%s", Name)
+	config.InstallConfigClientPlugin(Name, NewClient)
 }

@@ -32,11 +32,11 @@ import (
 func init() {
 }
 
-//TestKieClient_NewKieClient for InitConfigKie.
+//TestKieClient_NewKieClient for NewClient.
 func TestKieClient_NewKieClient(t *testing.T) {
 	gopath := os.Getenv("GOPATH")
 	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/go-chassis/go-chassis/examples/discovery/server/")
-	_, err := InitConfigKie(config.Options{App: "", ServerURI: "http://127.0.0.1:49800", Version: "1", ServiceName: "test", Endpoint: "http://127.0.0.1:49800"})
+	_, err := NewClient(config.Options{App: "", ServerURI: "http://127.0.0.1:49800", Version: "1", ServiceName: "test", Endpoint: "http://127.0.0.1:49800"})
 	assert.Equal(t, err, nil)
 }
 
@@ -46,7 +46,7 @@ func TestKieClient_PullConfig(t *testing.T) {
 	helper := startHttpServer(":49800", "/v1/test/kie/kv/test")
 	gopath := os.Getenv("GOPATH")
 	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/go-chassis/go-chassis/examples/discovery/server/")
-	kieClient, err := InitConfigKie(config.Options{App: "", ServerURI: "http://127.0.0.1:49800", Version: "1", ServiceName: "test", Endpoint: "http://127.0.0.1:49800"})
+	kieClient, err := NewClient(config.Options{App: "", ServerURI: "http://127.0.0.1:49800", Version: "1", ServiceName: "test", Endpoint: "http://127.0.0.1:49800"})
 	resp, err := kieClient.PullConfig("test", "1", "", "", "test", "")
 	fmt.Println(resp, err)
 	//assert.Equal(t, resp.StatusCode, 404)
@@ -63,7 +63,7 @@ func TestKieClient_PullConfigs(t *testing.T) {
 	helper := startHttpServer(":49800", "/v1/calculator/kie/kv?q=version:0.0.1+app:+env:+servicename:calculator")
 	gopath := os.Getenv("GOPATH")
 	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/go-chassis/go-chassis/examples/discovery/server/")
-	kieClient, err := InitConfigKie(config.Options{App: "", ServerURI: "http://127.0.0.1:49800", Version: "1", ServiceName: "test", Endpoint: "http://127.0.0.1:49800"})
+	kieClient, err := NewClient(config.Options{App: "", ServerURI: "http://127.0.0.1:49800", Version: "1", ServiceName: "test", Endpoint: "http://127.0.0.1:49800"})
 	resp, err := kieClient.PullConfigs("test", "1", "", "")
 	fmt.Println(resp, err)
 	//assert.Equal(t, resp.StatusCode, 404)
@@ -80,7 +80,7 @@ func TestKieClient_PushConfigs(t *testing.T) {
 	helper := startHttpServer(":49800", "/")
 	gopath := os.Getenv("GOPATH")
 	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/go-chassis/go-chassis/examples/discovery/server/")
-	kieClient, err := InitConfigKie(config.Options{App: "", ServerURI: "http://127.0.0.1:49800", Version: "1", ServiceName: "test", Endpoint: "http://127.0.0.1:49800"})
+	kieClient, err := NewClient(config.Options{App: "", ServerURI: "http://127.0.0.1:49800", Version: "1", ServiceName: "test", Endpoint: "http://127.0.0.1:49800"})
 	data := make(map[string]interface{})
 	data["test_info"] = "test_info"
 	resp, err := kieClient.PushConfigs(data, "test", "1", "", "")
@@ -99,7 +99,7 @@ func TestKieClient_DeleteConfigs(t *testing.T) {
 	helper := startHttpServer(":49800", "/v1/calculator/kie/kv/?kvID=s")
 	gopath := os.Getenv("GOPATH")
 	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/go-chassis/go-chassis/examples/discovery/server/")
-	kieClient, err := InitConfigKie(config.Options{App: "", ServerURI: "http://127.0.0.1:49800", Version: "1", ServiceName: "test", Endpoint: "http://127.0.0.1:49800"})
+	kieClient, err := NewClient(config.Options{App: "", ServerURI: "http://127.0.0.1:49800", Version: "1", ServiceName: "test", Endpoint: "http://127.0.0.1:49800"})
 	data := []string{"1"}
 	resp, err := kieClient.DeleteConfigsByKeys(data, "test", "1", "", "")
 	fmt.Println(resp, err)
