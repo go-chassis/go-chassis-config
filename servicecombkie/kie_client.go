@@ -76,8 +76,9 @@ func NewClient(options config.Options) (config.Client, error) {
 func (kieClient *Client) PullConfigs(serviceName, version, app, env string) (map[string]interface{}, error) {
 	openlogging.GetLogger().Debugf("KieClient begin PullConfigs")
 	labels := map[string]string{"servicename": serviceName, "version": version, "app": app, "env": env}
+	labelsAE := map[string]string{"app": app, "env": env}
 	configsInfo := make(map[string]interface{})
-	configurationsValue, err := kieClient.KieClient.SearchByLabels(context.TODO(), sckieclient.WithGetProject(serviceName), sckieclient.WithLabels(labels))
+	configurationsValue, err := kieClient.KieClient.SearchByLabels(context.TODO(), sckieclient.WithGetProject(serviceName), sckieclient.WithLabels(labels, labelsAE))
 	if err != nil {
 		openlogging.GetLogger().Errorf("Error in Querying the Response from Kie %s %#v", err.Error(), labels)
 		return nil, err
