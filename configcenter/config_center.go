@@ -36,6 +36,10 @@ const (
 	Name = "config_center"
 )
 
+var (
+	ErrInvalidEP = errors.New("invalid endpoint")
+)
+
 //ConfigCenter is ConfigCenter Implementation of ConfigCenter
 type ConfigCenter struct {
 	c           *configcenter.Client
@@ -46,6 +50,9 @@ type ConfigCenter struct {
 
 //NewConfigCenter is a function
 func NewConfigCenter(options config.Options) (config.Client, error) {
+	if options.ServerURI == "" {
+		return nil, ErrInvalidEP
+	}
 	configCenters := strings.Split(options.ServerURI, ",")
 	cCenters := make([]string, 0)
 	for _, value := range configCenters {
