@@ -19,11 +19,11 @@ package servicecombkie
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	sckieclient "github.com/apache/servicecomb-kie/client"
 	"github.com/apache/servicecomb-kie/pkg/model"
-	"github.com/go-chassis/go-archaius/sources/utils"
 	"github.com/go-chassis/go-chassis-config"
 	"github.com/go-mesh/openlogging"
 )
@@ -31,13 +31,20 @@ import (
 // Client contains the implementation of Client
 type Client struct {
 	KieClient     *sckieclient.Client
-	serviceName   string
-	version       string
-	URI           string
+	ServiceName   string
+	ServerURI     string
 	EnableSSL     bool
-	AutoDiscovery bool
 	Namespace     string
 	TenantName    string
+	Endpoint      string
+	Cluster       string
+	App           string
+	Env           string
+	Version       string
+	TLSConfig     *tls.Config
+	APIVersion    string
+	AutoDiscovery bool
+	RefreshPort   string
 }
 
 const (
@@ -53,16 +60,23 @@ const (
 // NewClient init the necessary objects needed for seamless communication to Kie Server
 func NewClient(options config.Options) (config.Client, error) {
 	kieClient := &Client{
-		serviceName:   options.ServiceName,
-		version:       options.Version,
-		URI:           options.ServerURI,
+		ServiceName:   options.ServiceName,
+		ServerURI:     options.ServerURI,
 		EnableSSL:     options.EnableSSL,
-		AutoDiscovery: options.AutoDiscovery,
 		Namespace:     options.Namespace,
 		TenantName:    options.TenantName,
+		Endpoint:      options.Endpoint,
+		Cluster:       options.Cluster,
+		App:           options.App,
+		Env:           options.Env,
+		Version:       options.Version,
+		TLSConfig:     options.TLSConfig,
+		APIVersion:    options.APIVersion,
+		AutoDiscovery: options.AutoDiscovery,
+		RefreshPort:   options.RefreshPort,
 	}
 	defaultLabels := make(map[string]string)
-	configInfo := sckieclient.Config{Endpoint: kieClient.URI, DefaultLabels: defaultLabels, VerifyPeer: kieClient.EnableSSL}
+	configInfo := sckieclient.Config{Endpoint: kieClient.ServerURI, DefaultLabels: defaultLabels, VerifyPeer: kieClient.EnableSSL}
 	var err error
 	kieClient.KieClient, err = sckieclient.New(configInfo)
 	if err != nil {
@@ -88,13 +102,6 @@ func (kieClient *Client) PullConfigs(serviceName, version, app, env string) (map
 	for _, docRes := range configurationsValue {
 		for _, docInfo := range docRes.Data {
 			configsInfo[docInfo.Key] = docInfo.Value
-			configDetail, err := utils.Convert2JavaProps(docInfo.Key, []byte(docInfo.Value))
-			if err != nil {
-				openlogging.GetLogger().Errorf("Error in Parse the Response from Kie %s %#v", err.Error(), labels)
-			}
-			for key, value := range configDetail {
-				configsInfo[key] = value
-			}
 		}
 	}
 	return configsInfo, nil
@@ -174,13 +181,20 @@ func (kieClient *Client) Watch(f func(map[string]interface{}), errHandler func(e
 func (kieClient *Client) Options() config.Options {
 	fmt.Println("Options")
 	optionInfo := config.Options{
-		ServiceName:   kieClient.serviceName,
-		Version:       kieClient.version,
-		Endpoint:      kieClient.URI,
+		ServiceName:   kieClient.ServiceName,
+		ServerURI:     kieClient.ServerURI,
 		EnableSSL:     kieClient.EnableSSL,
-		AutoDiscovery: kieClient.AutoDiscovery,
 		Namespace:     kieClient.Namespace,
 		TenantName:    kieClient.TenantName,
+		Endpoint:      kieClient.Endpoint,
+		Cluster:       kieClient.Cluster,
+		App:           kieClient.App,
+		Env:           kieClient.Env,
+		Version:       kieClient.Version,
+		TLSConfig:     kieClient.TLSConfig,
+		APIVersion:    kieClient.APIVersion,
+		AutoDiscovery: kieClient.AutoDiscovery,
+		RefreshPort:   kieClient.RefreshPort,
 	}
 	return optionInfo
 }
