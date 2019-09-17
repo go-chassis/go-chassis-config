@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package servicecombkie
+package servicecomb
 
 import (
 	"encoding/json"

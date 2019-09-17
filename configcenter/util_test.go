@@ -19,7 +19,7 @@ package configcenter_test
 
 import (
 	"github.com/go-chassis/go-chassis-config/configcenter"
-	"gopkg.in/go-playground/assert.v1"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 

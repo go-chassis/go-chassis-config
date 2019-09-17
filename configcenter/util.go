@@ -18,8 +18,8 @@
 package configcenter
 
 import (
+	"errors"
 	"fmt"
-	"github.com/pkg/errors"
 	"regexp"
 )
 

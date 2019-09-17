@@ -42,10 +42,9 @@ var (
 
 //ConfigCenter is ConfigCenter Implementation of ConfigCenter
 type ConfigCenter struct {
-	c           *configcenter.Client
-	opts        config.Options
-	refreshPort string
-	wsDialer    *websocket.Dialer
+	c        *configcenter.Client
+	opts     config.Options
+	wsDialer *websocket.Dialer
 }
 
 //NewConfigCenter is a function
@@ -77,9 +76,8 @@ func NewConfigCenter(options config.Options) (config.Client, error) {
 	}
 
 	cc := &ConfigCenter{
-		c:           c,
-		opts:        options,
-		refreshPort: options.RefreshPort,
+		c:    c,
+		opts: options,
 	}
 	openlogging.Info("new config center client", openlogging.WithTags(
 		openlogging.Tags{
