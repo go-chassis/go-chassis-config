@@ -29,9 +29,8 @@ import (
 
 // Client contains the implementation of Client
 type Client struct {
-	KieClient     *client.Client
-	DefaultLabels map[string]string
-	opts          config.Options
+	KieClient *client.Client
+	opts      config.Options
 }
 
 const (
@@ -48,13 +47,7 @@ func NewClient(options config.Options) (config.Client, error) {
 	kieClient := &Client{
 		opts: options,
 	}
-	DefaultLabels := map[string]string{
-		LabelApp:         options.App,
-		LabelEnvironment: options.Env,
-		LabelService:     options.ServiceName,
-		LabelVersion:     options.Version,
-	}
-	configInfo := client.Config{Endpoint: kieClient.opts.ServerURI, DefaultLabels: DefaultLabels, VerifyPeer: kieClient.opts.EnableSSL}
+	configInfo := client.Config{Endpoint: kieClient.opts.ServerURI, DefaultLabels: options.Labels, VerifyPeer: kieClient.opts.EnableSSL}
 	var err error
 	kieClient.KieClient, err = client.New(configInfo)
 	if err != nil {
@@ -65,12 +58,16 @@ func NewClient(options config.Options) (config.Client, error) {
 }
 
 // PullConfigs is used for pull config from servicecomb-kie
-func (c *Client) PullConfigs(serviceName, version, app, env string) (map[string]interface{}, error) {
+func (c *Client) PullConfigs(labels ...map[string]string) (map[string]interface{}, error) {
 	openlogging.Debug("KieClient begin PullConfigs")
-	labels := map[string]string{LabelService: serviceName, LabelVersion: version, LabelApp: app, LabelEnvironment: env}
-	labelsAppLevel := map[string]string{LabelApp: app, LabelEnvironment: env}
 	configsInfo := make(map[string]interface{})
-	configurationsValue, err := c.KieClient.SearchByLabels(context.TODO(), client.WithGetProject(serviceName), client.WithLabels(labels, labelsAppLevel))
+	var err error
+	var configurationsValue []*model.KVResponse
+	if len(labels) != 0 {
+		configurationsValue, err = c.KieClient.SearchByLabels(context.TODO(), client.WithGetProject("default"), client.WithLabels(labels...))
+	} else {
+		configurationsValue, err = c.KieClient.SearchByLabels(context.TODO(), client.WithGetProject("default"), client.WithLabels(c.opts.Labels))
+	}
 	if err != nil {
 		openlogging.GetLogger().Errorf("Error in Querying the Response from Kie %s %#v", err.Error(), labels)
 		return nil, err
@@ -86,9 +83,8 @@ func (c *Client) PullConfigs(serviceName, version, app, env string) (map[string]
 }
 
 // PullConfig get config by key and labels.
-func (c *Client) PullConfig(serviceName, version, app, env, key, contentType string) (interface{}, error) {
-	labels := map[string]string{LabelService: serviceName, LabelVersion: version, LabelApp: app, LabelEnvironment: env}
-	configurationsValue, err := c.KieClient.Get(context.TODO(), key, client.WithGetProject(serviceName), client.WithLabels(labels))
+func (c *Client) PullConfig(key, contentType string, labels map[string]string) (interface{}, error) {
+	configurationsValue, err := c.KieClient.Get(context.TODO(), key, client.WithGetProject("default"), client.WithLabels(labels))
 	if err != nil {
 		openlogging.GetLogger().Error("Error in Querying the Response from Kie: " + err.Error())
 		return nil, err
@@ -104,22 +100,15 @@ func (c *Client) PullConfig(serviceName, version, app, env, key, contentType str
 	return nil, errors.New("can not find value")
 }
 
-//PullConfigsByDI not implemented
-func (c *Client) PullConfigsByDI(dimensionInfo string) (map[string]map[string]interface{}, error) {
-	// TODO Return the configurations for customized Projects in Kie Configs
-	return nil, errors.New("not implemented")
-}
-
 //PushConfigs put config in kie by key and labels.
-func (c *Client) PushConfigs(data map[string]interface{}, serviceName, version, app, env string) (map[string]interface{}, error) {
+func (c *Client) PushConfigs(data map[string]interface{}, labels map[string]string) (map[string]interface{}, error) {
 	var configReq model.KVDoc
-	labels := map[string]string{LabelService: serviceName, LabelVersion: version, LabelApp: app, LabelEnvironment: env}
 	configResult := make(map[string]interface{})
 	for key, configValue := range data {
 		configReq.Key = key
 		configReq.Value = configValue.(string)
 		configReq.Labels = labels
-		configurationsValue, err := c.KieClient.Put(context.TODO(), configReq, client.WithProject(serviceName))
+		configurationsValue, err := c.KieClient.Put(context.TODO(), configReq, client.WithProject("default"))
 		if err != nil {
 			openlogging.Error("Error in PushConfigs to Kie: " + err.Error())
 			return nil, err
@@ -131,10 +120,10 @@ func (c *Client) PushConfigs(data map[string]interface{}, serviceName, version, 
 }
 
 //DeleteConfigsByKeys use keyId for delete
-func (c *Client) DeleteConfigsByKeys(keys []string, serviceName, version, app, env string) (map[string]interface{}, error) {
+func (c *Client) DeleteConfigsByKeys(keys []string, labels map[string]string) (map[string]interface{}, error) {
 	result := make(map[string]interface{})
 	for _, keyId := range keys {
-		err := c.KieClient.Delete(context.TODO(), keyId, "", client.WithProject(serviceName))
+		err := c.KieClient.Delete(context.TODO(), keyId, "", client.WithProject("default"))
 		if err != nil {
 			openlogging.Error("Error in Delete from Kie. " + err.Error())
 			return nil, err
@@ -145,7 +134,7 @@ func (c *Client) DeleteConfigsByKeys(keys []string, serviceName, version, app, e
 }
 
 //Watch not implemented because kie not support.
-func (c *Client) Watch(f func(map[string]interface{}), errHandler func(err error)) error {
+func (c *Client) Watch(f func(map[string]interface{}), errHandler func(err error), labels map[string]string) error {
 	// TODO watch change events
 	return errors.New("not implemented")
 }

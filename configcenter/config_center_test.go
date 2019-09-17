@@ -21,6 +21,9 @@ func init() {
 }
 
 func TestNewConfigCenter(t *testing.T) {
-	c, _ := configcenter.NewConfigCenter(config.Options{App: "default"})
-	assert.Equal(t, "default", c.Options().App)
+	c, err := configcenter.NewConfigCenter(config.Options{
+		ServerURI: "http://",
+		Labels:    map[string]string{"app": "default"}})
+	assert.NoError(t, err)
+	assert.Equal(t, "default", c.Options().Labels["app"])
 }

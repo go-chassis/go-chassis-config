@@ -152,13 +152,13 @@ func (c *Client) call(method string, api string, headers http.Header, body []byt
 	errMsgPrefix := fmt.Sprintf("Call %s failed: ", rawUri)
 	resp, err := c.HTTPDo(method, rawUri, headers, body)
 	if err != nil {
-		openlogging.GetLogger().Error(errMsgPrefix + err.Error())
+		openlogging.Error(errMsgPrefix + err.Error())
 		return err
 
 	}
 	body, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		openlogging.GetLogger().Error(errMsgPrefix + err.Error())
+		openlogging.Error(errMsgPrefix + err.Error())
 		return err
 	}
 	if !isStatusSuccess(resp.StatusCode) {
@@ -191,12 +191,12 @@ func (c *Client) HTTPDo(method string, rawURL string, headers http.Header, body 
 	return c.c.HTTPDo(method, rawURL, headers, body)
 }
 
-// Pull pulls all the configuration from config center and merge kv in different dimension
-func (c *Client) Pull(dimensionInfo string) (map[string]interface{}, error) {
+// Flatten pulls all the configuration from config center and merge kv in different dimension
+func (c *Client) Flatten(dimensionInfo string) (map[string]interface{}, error) {
 	config := make(map[string]interface{})
 	configAPIResp, err := c.PullGroupByDimension(dimensionInfo)
 	if err != nil {
-		openlogging.GetLogger().Error("Pull config failed:" + err.Error())
+		openlogging.GetLogger().Error("Flatten config failed:" + err.Error())
 		return nil, err
 	}
 	for _, v := range configAPIResp {
@@ -215,7 +215,7 @@ func (c *Client) PullGroupByDimension(dimensionInfo string) (map[string]map[stri
 	restApi := ConfigPath + "?" + dimensionsInfo + "=" + parsedDimensionInfo
 	err := c.call(http.MethodGet, restApi, nil, nil, &configAPIRes)
 	if err != nil {
-		openlogging.GetLogger().Error("Pull config failed:" + err.Error())
+		openlogging.GetLogger().Error("Flatten config failed:" + err.Error())
 		return nil, err
 	}
 

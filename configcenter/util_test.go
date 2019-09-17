@@ -26,4 +26,7 @@ import (
 func TestGenerateDimension(t *testing.T) {
 	d, _ := configcenter.GenerateDimension("cart", "1.0.0", "default")
 	assert.Equal(t, "cart@default#1.0.0", d)
+
+	d, _ = configcenter.GenerateDimension("cart", "", "default")
+	assert.Equal(t, "cart@default", d)
 }
