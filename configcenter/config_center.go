@@ -58,7 +58,7 @@ func NewConfigCenter(options config.Options) (config.Client, error) {
 		value = strings.Replace(value, " ", "", -1)
 		cCenters = append(cCenters, value)
 	}
-	d, err := GenerateDimension(options.ServiceName, options.Version, options.App)
+	d, err := GenerateDimension(options.Labels["serviceName"], options.Labels["version"], options.Labels["app"])
 	if err != nil {
 		return nil, err
 	}
@@ -90,21 +90,18 @@ func NewConfigCenter(options config.Options) (config.Client, error) {
 }
 
 // PullConfigs is the implementation of ConfigCenter to pull all the configurations from Config-Server
-func (c *ConfigCenter) PullConfigs(serviceName, version, app, env string) (map[string]interface{}, error) {
-	if app == "" {
-		app = c.opts.App
+func (c *ConfigCenter) PullConfigs(labels ...map[string]string) (map[string]interface{}, error) {
+	d := ""
+	var err error
+	if len(labels) != 0 {
+		d, err = GenerateDimension(labels[0]["serviceName"], labels[0]["version"], labels[0]["app"])
+	} else {
+		d, err = GenerateDimension(c.opts.Labels["serviceName"], c.opts.Labels["version"], c.opts.Labels["app"])
 	}
-	if version == "" {
-		version = c.opts.Version
-	}
-	if serviceName == "" {
-		serviceName = c.opts.ServiceName
-	}
-	d, err := GenerateDimension(serviceName, version, app)
 	if err != nil {
 		return nil, err
 	}
-	configurations, error := c.c.Pull(d)
+	configurations, error := c.c.Flatten(d)
 	if error != nil {
 		return nil, error
 	}
@@ -112,22 +109,16 @@ func (c *ConfigCenter) PullConfigs(serviceName, version, app, env string) (map[s
 }
 
 // PullConfig is the implementation of ConfigCenter to pull specific configurations from Config-Server
-func (c *ConfigCenter) PullConfig(serviceName, version, app, env, key, contentType string) (interface{}, error) {
-	if app == "" {
-		app = c.opts.App
+func (c *ConfigCenter) PullConfig(key, contentType string, labels map[string]string) (interface{}, error) {
+	if len(labels) == 0 {
+		labels = c.opts.Labels
 	}
-	if version == "" {
-		version = c.opts.Version
-	}
-	if serviceName == "" {
-		serviceName = c.opts.ServiceName
-	}
-	d, err := GenerateDimension(serviceName, version, app)
+	d, err := GenerateDimension(labels["serviceName"], "", labels["app"])
 	if err != nil {
 		return nil, err
 	}
 	// TODO use the contentType to return the configurations
-	configurations, error := c.c.Pull(d)
+	configurations, error := c.c.Flatten(d)
 	if error != nil {
 		return nil, error
 	}
@@ -139,25 +130,17 @@ func (c *ConfigCenter) PullConfig(serviceName, version, app, env, key, contentTy
 	return configurationsValue, nil
 }
 
-// PullConfigsByDI pulls the configuration for custom DimensionInfo
-func (c *ConfigCenter) PullConfigsByDI(dimensionInfo string) (map[string]map[string]interface{}, error) {
-	configs, err := c.c.PullGroupByDimension(dimensionInfo)
-	if err != nil {
-		openlogging.GetLogger().Error("Pull config by DI failed:" + err.Error())
-		return nil, err
-
-	}
-	return configs, nil
-}
-
 // PushConfigs push configs to ConfigSource cc , success will return { "Result": "Success" }
-func (c *ConfigCenter) PushConfigs(items map[string]interface{}, serviceName, version, app, env string) (map[string]interface{}, error) {
+func (c *ConfigCenter) PushConfigs(items map[string]interface{}, labels map[string]string) (map[string]interface{}, error) {
 	if len(items) == 0 {
 		em := "data is empty , which data need to send cc"
 		openlogging.GetLogger().Error(em)
 		return nil, errors.New(em)
 	}
-	d, err := GenerateDimension(serviceName, version, app)
+	if len(labels) == 0 {
+		labels = c.opts.Labels
+	}
+	d, err := GenerateDimension(labels["serviceName"], labels["version"], labels["app"])
 	if err != nil {
 		return nil, err
 	}
@@ -170,13 +153,16 @@ func (c *ConfigCenter) PushConfigs(items map[string]interface{}, serviceName, ve
 }
 
 // DeleteConfigsByKeys
-func (c *ConfigCenter) DeleteConfigsByKeys(keys []string, serviceName, version, app, env string) (map[string]interface{}, error) {
+func (c *ConfigCenter) DeleteConfigsByKeys(keys []string, labels map[string]string) (map[string]interface{}, error) {
 	if len(keys) == 0 {
 		em := "not key need to delete for cc, please check keys"
 		openlogging.GetLogger().Error(em)
 		return nil, errors.New(em)
 	}
-	d, err := GenerateDimension(serviceName, version, app)
+	if len(labels) == 0 {
+		labels = c.opts.Labels
+	}
+	d, err := GenerateDimension(labels["serviceName"], labels["version"], labels["app"])
 	if err != nil {
 		return nil, err
 	}
@@ -187,7 +173,7 @@ func (c *ConfigCenter) DeleteConfigsByKeys(keys []string, serviceName, version, 
 
 	return c.c.DeleteConfig(configApi)
 }
-func (c *ConfigCenter) Watch(f func(map[string]interface{}), errHandler func(err error)) error {
+func (c *ConfigCenter) Watch(f func(map[string]interface{}), errHandler func(err error), labels map[string]string) error {
 	return c.c.Watch(f, errHandler)
 }
 func init() {
