@@ -35,11 +35,7 @@ type Client struct {
 
 const (
 	//Name of the Plugin
-	Name             = "servicecomb-kie"
-	LabelService     = "serviceName"
-	LabelVersion     = "version"
-	LabelEnvironment = "environment"
-	LabelApp         = "app"
+	Name = "servicecomb-kie"
 )
 
 // NewClient init the necessary objects needed for seamless communication to Kie Server
