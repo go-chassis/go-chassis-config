@@ -37,9 +37,9 @@ func TestKieClient_NewKieClient(t *testing.T) {
 	gopath := os.Getenv("GOPATH")
 	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/go-chassis/go-chassis/examples/discovery/server/")
 	_, err := NewClient(config.Options{Labels: map[string]string{
-		LabelVersion: "1",
-		LabelApp:     "",
-		LabelService: "test",
+		config.LabelVersion: "1",
+		config.LabelApp:     "",
+		config.LabelService: "test",
 	}, ServerURI: "http://127.0.0.1:49800",
 		Endpoint: "http://127.0.0.1:49800"})
 	assert.Equal(t, err, nil)
@@ -52,14 +52,14 @@ func TestKieClient_PullConfig(t *testing.T) {
 	gopath := os.Getenv("GOPATH")
 	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/go-chassis/go-chassis/examples/discovery/server/")
 	kieClient, err := NewClient(config.Options{Labels: map[string]string{
-		LabelVersion: "1",
-		LabelApp:     "",
-		LabelService: "test",
+		config.LabelVersion: "1",
+		config.LabelApp:     "",
+		config.LabelService: "test",
 	}, ServerURI: "http://127.0.0.1:49800", Endpoint: "http://127.0.0.1:49800"})
 	resp, err := kieClient.PullConfig("test", "1", map[string]string{
-		LabelVersion: "1",
-		LabelApp:     "",
-		LabelService: "test",
+		config.LabelVersion: "1",
+		config.LabelApp:     "",
+		config.LabelService: "test",
 	})
 	fmt.Println(resp, err)
 	//assert.Equal(t, resp.StatusCode, 404)
@@ -77,14 +77,14 @@ func TestKieClient_PullConfigs(t *testing.T) {
 	gopath := os.Getenv("GOPATH")
 	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/go-chassis/go-chassis/examples/discovery/server/")
 	kieClient, err := NewClient(config.Options{Labels: map[string]string{
-		LabelVersion: "1",
-		LabelApp:     "",
-		LabelService: "test",
+		config.LabelVersion: "1",
+		config.LabelApp:     "",
+		config.LabelService: "test",
 	}, ServerURI: "http://127.0.0.1:49800", Endpoint: "http://127.0.0.1:49800"})
 	resp, err := kieClient.PullConfigs(map[string]string{
-		LabelVersion: "1",
-		LabelApp:     "",
-		LabelService: "test",
+		config.LabelVersion: "1",
+		config.LabelApp:     "",
+		config.LabelService: "test",
 	})
 	fmt.Println(resp, err)
 	//assert.Equal(t, resp.StatusCode, 404)
@@ -102,16 +102,16 @@ func TestKieClient_PushConfigs(t *testing.T) {
 	gopath := os.Getenv("GOPATH")
 	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/go-chassis/go-chassis/examples/discovery/server/")
 	kieClient, err := NewClient(config.Options{Labels: map[string]string{
-		LabelVersion: "1",
-		LabelApp:     "",
-		LabelService: "test",
+		config.LabelVersion: "1",
+		config.LabelApp:     "",
+		config.LabelService: "test",
 	}, ServerURI: "http://127.0.0.1:49800", Endpoint: "http://127.0.0.1:49800"})
 	data := make(map[string]interface{})
 	data["test_info"] = "test_info"
 	resp, err := kieClient.PushConfigs(data, map[string]string{
-		LabelVersion: "1",
-		LabelApp:     "",
-		LabelService: "test",
+		config.LabelVersion: "1",
+		config.LabelApp:     "",
+		config.LabelService: "test",
 	})
 	fmt.Println(resp, err)
 	//assert.Equal(t, resp.StatusCode, 404)
@@ -129,15 +129,15 @@ func TestKieClient_DeleteConfigs(t *testing.T) {
 	gopath := os.Getenv("GOPATH")
 	os.Setenv("CHASSIS_HOME", gopath+"src/github.com/go-chassis/go-chassis/examples/discovery/server/")
 	kieClient, err := NewClient(config.Options{Labels: map[string]string{
-		LabelVersion: "1",
-		LabelApp:     "",
-		LabelService: "test",
+		config.LabelVersion: "1",
+		config.LabelApp:     "",
+		config.LabelService: "test",
 	}, ServerURI: "http://127.0.0.1:49800", Endpoint: "http://127.0.0.1:49800"})
 	data := []string{"1"}
 	resp, err := kieClient.DeleteConfigsByKeys(data, map[string]string{
-		LabelVersion: "1",
-		LabelApp:     "",
-		LabelService: "test",
+		config.LabelVersion: "1",
+		config.LabelApp:     "",
+		config.LabelService: "test",
 	})
 	fmt.Println(resp, err)
 	//assert.Equal(t, resp.StatusCode, 404)

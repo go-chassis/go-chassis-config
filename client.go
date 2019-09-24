@@ -9,6 +9,14 @@ import (
 
 var configClientPlugins = make(map[string]func(options Options) (Client, error))
 
+//const
+const (
+	LabelService     = "serviceName"
+	LabelVersion     = "version"
+	LabelEnvironment = "environment"
+	LabelApp         = "app"
+)
+
 //DefaultClient is config server's client
 var DefaultClient Client
 

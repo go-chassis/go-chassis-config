@@ -58,7 +58,7 @@ func NewConfigCenter(options config.Options) (config.Client, error) {
 		value = strings.Replace(value, " ", "", -1)
 		cCenters = append(cCenters, value)
 	}
-	d, err := GenerateDimension(options.Labels["serviceName"], options.Labels["version"], options.Labels["app"])
+	d, err := GenerateDimension(options.Labels[config.LabelService], options.Labels[config.LabelVersion], options.Labels[config.LabelApp])
 	if err != nil {
 		return nil, err
 	}
@@ -93,11 +93,7 @@ func NewConfigCenter(options config.Options) (config.Client, error) {
 func (c *ConfigCenter) PullConfigs(labels ...map[string]string) (map[string]interface{}, error) {
 	d := ""
 	var err error
-	if len(labels) != 0 {
-		d, err = GenerateDimension(labels[0]["serviceName"], labels[0]["version"], labels[0]["app"])
-	} else {
-		d, err = GenerateDimension(c.opts.Labels["serviceName"], c.opts.Labels["version"], c.opts.Labels["app"])
-	}
+	d, err = GenerateDimension(c.opts.Labels[config.LabelService], c.opts.Labels[config.LabelVersion], c.opts.Labels[config.LabelApp])
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +109,7 @@ func (c *ConfigCenter) PullConfig(key, contentType string, labels map[string]str
 	if len(labels) == 0 {
 		labels = c.opts.Labels
 	}
-	d, err := GenerateDimension(labels["serviceName"], "", labels["app"])
+	d, err := GenerateDimension(c.opts.Labels[config.LabelService], c.opts.Labels[config.LabelVersion], c.opts.Labels[config.LabelApp])
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +136,7 @@ func (c *ConfigCenter) PushConfigs(items map[string]interface{}, labels map[stri
 	if len(labels) == 0 {
 		labels = c.opts.Labels
 	}
-	d, err := GenerateDimension(labels["serviceName"], labels["version"], labels["app"])
+	d, err := GenerateDimension(c.opts.Labels[config.LabelService], c.opts.Labels[config.LabelVersion], c.opts.Labels[config.LabelApp])
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +158,7 @@ func (c *ConfigCenter) DeleteConfigsByKeys(keys []string, labels map[string]stri
 	if len(labels) == 0 {
 		labels = c.opts.Labels
 	}
-	d, err := GenerateDimension(labels["serviceName"], labels["version"], labels["app"])
+	d, err := GenerateDimension(c.opts.Labels[config.LabelService], c.opts.Labels[config.LabelVersion], c.opts.Labels[config.LabelApp])
 	if err != nil {
 		return nil, err
 	}
