@@ -56,12 +56,11 @@ func TestKieClient_PullConfig(t *testing.T) {
 		config.LabelApp:     "",
 		config.LabelService: "test",
 	}, ServerURI: "http://127.0.0.1:49800", Endpoint: "http://127.0.0.1:49800"})
-	resp, err := kieClient.PullConfig("test", "1", map[string]string{
+	_, err = kieClient.PullConfig("test", "1", map[string]string{
 		config.LabelVersion: "1",
 		config.LabelApp:     "",
 		config.LabelService: "test",
 	})
-	fmt.Println(resp, err)
 	//assert.Equal(t, resp.StatusCode, 404)
 	assert.Equal(t, err.Error(), "can not find value")
 	// Shutdown the helper server gracefully
@@ -81,12 +80,11 @@ func TestKieClient_PullConfigs(t *testing.T) {
 		config.LabelApp:     "",
 		config.LabelService: "test",
 	}, ServerURI: "http://127.0.0.1:49800", Endpoint: "http://127.0.0.1:49800"})
-	resp, err := kieClient.PullConfigs(map[string]string{
+	_, err = kieClient.PullConfigs(map[string]string{
 		config.LabelVersion: "1",
 		config.LabelApp:     "",
 		config.LabelService: "test",
 	})
-	fmt.Println(resp, err)
 	//assert.Equal(t, resp.StatusCode, 404)
 	assert.Equal(t, err.Error(), "can not find value")
 	// Shutdown the helper server gracefully
@@ -108,12 +106,11 @@ func TestKieClient_PushConfigs(t *testing.T) {
 	}, ServerURI: "http://127.0.0.1:49800", Endpoint: "http://127.0.0.1:49800"})
 	data := make(map[string]interface{})
 	data["test_info"] = "test_info"
-	resp, err := kieClient.PushConfigs(data, map[string]string{
+	_, err = kieClient.PushConfigs(data, map[string]string{
 		config.LabelVersion: "1",
 		config.LabelApp:     "",
 		config.LabelService: "test",
 	})
-	fmt.Println(resp, err)
 	//assert.Equal(t, resp.StatusCode, 404)
 	assert.Equal(t, err.Error(), "json: cannot unmarshal array into Go value of type model.KVDoc")
 	// Shutdown the helper server gracefully
@@ -134,14 +131,13 @@ func TestKieClient_DeleteConfigs(t *testing.T) {
 		config.LabelService: "test",
 	}, ServerURI: "http://127.0.0.1:49800", Endpoint: "http://127.0.0.1:49800"})
 	data := []string{"1"}
-	resp, err := kieClient.DeleteConfigsByKeys(data, map[string]string{
+	_, err = kieClient.DeleteConfigsByKeys(data, map[string]string{
 		config.LabelVersion: "1",
 		config.LabelApp:     "",
 		config.LabelService: "test",
 	})
-	fmt.Println(resp, err)
 	//assert.Equal(t, resp.StatusCode, 404)
-	assert.Equal(t, err, nil)
+	assert.Equal(t, err.Error(), "delete 1 failed,http status [200 OK], body [[{\"label\":null,\"data\":null}]]")
 	// Shutdown the helper server gracefully
 	if err := helper.Shutdown(nil); err != nil {
 		panic(err)
@@ -160,7 +156,7 @@ func startHttpServer(port string, pattern string) *http.Server {
 	})
 	go func() {
 		if err := helper.ListenAndServe(); err != nil {
-			fmt.Printf("Httpserver: ListenAndServe() error: %s", err)
+			fmt.Printf("Httpserver: ListenAndServe() error: %s \n", err)
 		}
 	}()
 	time.Sleep(time.Second * 1)
