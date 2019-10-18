@@ -10,7 +10,7 @@ Supported distributed configuration management service:
 |----------|----------|:-------------:|
 |config_center                             |github.com/go-chassis/go-chassis-config/configcenter |huawei cloud CSE config center https://www.huaweicloud.com/product/cse.html |
 |apollo(not longer under maintenance)      |github.com/go-chassis/go-chassis-config/apollo       |ctrip apollo https://github.com/ctripcorp/apollo |
-|servicecomb-kie                           |github.com/o-chassis-config/servicecomb              |apache servicecomb-kie https://github.com/apache/servicecomb-kie |
+|servicecomb-kie                           |github.com/apache/servicecomb-kie/client/adaptor              |apache servicecomb-kie https://github.com/apache/servicecomb-kie |
 
 # Example
 Get a client of config center
