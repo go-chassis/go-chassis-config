@@ -2,6 +2,8 @@ github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/go-chassis/foundation v0.0.0-20190621030543-c3b63f787f4c h1:p+Y6yq7RwHmYjEr/vwdVYGacBqFCc2lPQfNRIC3vRIs=
 github.com/go-chassis/foundation v0.0.0-20190621030543-c3b63f787f4c/go.mod h1:21/ajGtgJlWTCeM0TxGJdRhO8bJkKirWyV8Stlh6g6c=
+github.com/go-chassis/foundation v0.1.0 h1:ixjSxwUyJS8RkASYz0dNe5ApAL+gec7ejgsU84tIVnw=
+github.com/go-chassis/foundation v0.1.0/go.mod h1:21/ajGtgJlWTCeM0TxGJdRhO8bJkKirWyV8Stlh6g6c=
 github.com/go-mesh/openlogging v1.0.1 h1:6raaXo8SK+wuQX1VoNi6QJCSf1fTOFWh7f5f6b2ZEmY=
 github.com/go-mesh/openlogging v1.0.1/go.mod h1:qaKi+amO+hsGin2q1GmW+/NcbZpMPnTufwrWzDmIuuU=
 github.com/gorilla/websocket v1.4.0 h1:WDFjx/TMzVgy9VdMMQi2K2Emtwi2QcUQsztZ/zLaH/Q=

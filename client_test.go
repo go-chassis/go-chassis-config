@@ -13,6 +13,4 @@ func TestEnable(t *testing.T) {
 		ServerURI: "http://127.0.0.1:30100",
 	})
 	assert.NoError(t, err)
-	_, err = c.PullConfigs("service", "app", "1.0", "")
-	assert.Error(t, err)
 }
