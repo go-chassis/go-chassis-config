@@ -18,13 +18,13 @@
 package configcenter
 
 import (
-	"github.com/go-mesh/openlogging"
-
 	"errors"
+	"strings"
+
 	"github.com/go-chassis/go-chassis-config"
 	"github.com/go-chassis/go-chassis-config/pkg/configcenter"
+	"github.com/go-mesh/openlogging"
 	"github.com/gorilla/websocket"
-	"strings"
 )
 
 const (

@@ -18,6 +18,7 @@
 package configcenter
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/go-chassis/foundation/httpclient"
@@ -75,7 +76,7 @@ var (
 type Client struct {
 	opts Options
 	sync.RWMutex
-	c            *httpclient.URLClient
+	c            *httpclient.Requests
 	wsDialer     *websocket.Dialer
 	wsConnection *websocket.Conn
 }
@@ -97,7 +98,7 @@ func New(opts Options) (*Client, error) {
 	}
 	updateAPIPath(apiVersion)
 
-	hc, err := httpclient.GetURLClient(&httpclient.URLClientOption{
+	hc, err := httpclient.New(&httpclient.Options{
 		SSLEnabled: opts.EnableSSL,
 		TLSConfig:  opts.TLSConfig,
 		Compressed: false,
@@ -188,7 +189,7 @@ func (c *Client) HTTPDo(method string, rawURL string, headers http.Header, body 
 	for k, v := range GetDefaultHeaders(c.opts.TenantName) {
 		headers[k] = v
 	}
-	return c.c.HTTPDo(method, rawURL, headers, body)
+	return c.c.Do(context.Background(), method, rawURL, headers, body)
 }
 
 // Flatten pulls all the configuration from config center and merge kv in different dimension
